@@ -1,0 +1,21 @@
+{
+  "name": "contracts",
+  "version": "1.0.0",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@oasisprotocol/sapphire-hardhat": "^2.22.3",
+    "hardhat": "^2.22.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@oasisprotocol/sapphire-paratime": "^2.3.0"
+  }
+}
