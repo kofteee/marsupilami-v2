@@ -29,3 +29,9 @@
 
 # Snapshot cheatcodes output
 /snapshots
+
+# Deployment addresses (environment-specific)
+deployed-addresses.json
+
+# Typechain generated types
+/typechain-types
