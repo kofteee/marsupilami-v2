@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { useCreateMarket } from "../hooks/useMarket";
+import createMarketIcon from "../assets/marsu/create-market.jpeg";
+import successIcon from "../assets/marsu/success.jpeg";
+import pendingIcon from "../assets/marsu/pending.jpeg";
 
 export function CreateMarket() {
   const [question, setQuestion] = useState("");
   const [durationDays, setDurationDays] = useState(7);
   const [isOpen, setIsOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const createMarket = useCreateMarket();
 
@@ -17,7 +21,11 @@ export function CreateMarket() {
       {
         onSuccess: () => {
           setQuestion("");
-          setIsOpen(false);
+          setShowSuccess(true);
+          setTimeout(() => {
+            setShowSuccess(false);
+            setIsOpen(false);
+          }, 2000);
         },
       }
     );
@@ -25,15 +33,29 @@ export function CreateMarket() {
 
   if (!isOpen) {
     return (
-      <button onClick={() => setIsOpen(true)} className="btn btn-create">
-        + Create Market
+      <button onClick={() => setIsOpen(true)} className="btn btn-create create-market-btn">
+        <img src={createMarketIcon} alt="" className="btn-icon" />
+        Create Market
       </button>
+    );
+  }
+
+  if (showSuccess) {
+    return (
+      <div className="card create-market-form success-state">
+        <img src={successIcon} alt="Success" className="success-icon" />
+        <h2>Market Created!</h2>
+        <p>Your prediction market is now live.</p>
+      </div>
     );
   }
 
   return (
     <div className="card create-market-form">
-      <h2>Create New Market</h2>
+      <div className="form-header">
+        <img src={createMarketIcon} alt="" className="form-header-icon" />
+        <h2>Create New Market</h2>
+      </div>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Question</label>
@@ -72,7 +94,14 @@ export function CreateMarket() {
             disabled={createMarket.isPending}
             className="btn btn-primary"
           >
-            {createMarket.isPending ? "Creating..." : "Create Market"}
+            {createMarket.isPending ? (
+              <>
+                <img src={pendingIcon} alt="" className="btn-icon spinning" />
+                Creating...
+              </>
+            ) : (
+              "Create Market"
+            )}
           </button>
         </div>
 
