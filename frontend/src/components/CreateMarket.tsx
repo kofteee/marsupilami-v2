@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCreateMarket } from "../hooks/useMarket";
-import { CATEGORIES, CategoryId } from "../App";
+import { CATEGORIES } from "../App";
+import type { CategoryId } from "../App";
 import createMarketIcon from "../assets/marsu/create-market.jpeg";
 import successIcon from "../assets/marsu/success.jpeg";
 import pendingIcon from "../assets/marsu/pending.jpeg";

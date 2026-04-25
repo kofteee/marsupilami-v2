@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMarketInfo, useMyPosition, usePlaceBet, useClaim } from "../hooks/useMarket";
-import { parseCategory, CATEGORIES, CategoryId } from "../App";
+import { parseCategory, CATEGORIES } from "../App";
+import type { CategoryId } from "../App";
 import openMarket from "../assets/marsu/open-market.jpeg";
 import closedMarket from "../assets/marsu/closed-market.jpeg";
 import resolvedMarket from "../assets/marsu/resolved-market.jpeg";
