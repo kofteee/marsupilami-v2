@@ -5,6 +5,8 @@ import closedMarket from "../assets/marsu/closed-market.jpeg";
 import resolvedMarket from "../assets/marsu/resolved-market.jpeg";
 import yesFruit from "../assets/marsu/yes-fruit.jpeg";
 import noFruit from "../assets/marsu/no-fruit.jpeg";
+import yesButton from "../assets/marsu/yes-button.jpeg";
+import noButton from "../assets/marsu/no-button.jpeg";
 import positionFrame from "../assets/marsu/position-frame.jpeg";
 import claimRewards from "../assets/marsu/claim-rewards.jpeg";
 
@@ -91,6 +93,7 @@ export function Market({ address }: MarketProps) {
               disabled={placeBet.isPending}
               className="btn btn-yes"
             >
+              <img src={yesButton} alt="" className="btn-icon" />
               {placeBet.isPending ? "Placing..." : "Bet YES"}
             </button>
             <button
@@ -98,6 +101,7 @@ export function Market({ address }: MarketProps) {
               disabled={placeBet.isPending}
               className="btn btn-no"
             >
+              <img src={noButton} alt="" className="btn-icon" />
               {placeBet.isPending ? "Placing..." : "Bet NO"}
             </button>
           </div>

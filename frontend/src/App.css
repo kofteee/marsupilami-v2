@@ -190,6 +190,12 @@ main {
   transform: translateY(-2px);
 }
 
+.connect-wallet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .btn-secondary {
   background: var(--bg-card);
   color: var(--text-primary);
@@ -205,6 +211,10 @@ main {
   background: linear-gradient(135deg, var(--accent-yes) 0%, #16a34a 100%);
   color: white;
   border: 1px solid var(--accent-yes);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-yes:hover:not(:disabled) {
@@ -217,6 +227,10 @@ main {
   background: linear-gradient(135deg, var(--accent-no) 0%, #dc2626 100%);
   color: white;
   border: 1px solid var(--accent-no);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-no:hover:not(:disabled) {
