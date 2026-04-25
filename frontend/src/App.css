@@ -141,6 +141,120 @@ header {
   margin-top: 0.5rem;
 }
 
+/* Tabs Navigation */
+.tabs-nav {
+  display: flex;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.tab-btn.active {
+  color: var(--accent-gold);
+  border-bottom-color: var(--accent-gold);
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.tab-icon {
+  font-size: 1.25rem;
+}
+
+/* Category Filters */
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.category-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-btn:hover {
+  border-color: var(--accent-gold);
+  color: var(--text-primary);
+}
+
+.category-btn.active {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
+  color: #1a1a1a;
+  border-color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.category-icon {
+  font-size: 1.125rem;
+}
+
+.category-label {
+  white-space: nowrap;
+}
+
+/* Category Badge on Market Card */
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
+.category-badge.category-sports { border-color: #22c55e; color: #22c55e; }
+.category-badge.category-politics { border-color: #6366f1; color: #6366f1; }
+.category-badge.category-boston { border-color: #f59e0b; color: #f59e0b; }
+.category-badge.category-blockchain { border-color: #14b8a6; color: #14b8a6; }
+.category-badge.category-other { border-color: #a855f7; color: #a855f7; }
+
+.market-header-content {
+  flex: 1;
+}
+
+.market-header-content h2 {
+  margin-bottom: 0;
+}
+
 /* Main */
 main {
   flex: 1;
@@ -571,7 +685,13 @@ main {
   opacity: 0.7;
 }
 
-/* Create Market Form */
+/* Create Market Page */
+.create-market-page {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0;
+}
+
 .create-market-btn {
   display: inline-flex;
   align-items: center;
@@ -595,20 +715,21 @@ main {
 }
 
 .create-market-form {
-  max-width: 500px;
+  max-width: 600px;
+  width: 100%;
 }
 
 .create-market-form.success-state {
   text-align: center;
-  padding: 2rem;
+  padding: 3rem;
 }
 
 .success-icon {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   border: 3px solid var(--accent-yes);
   animation: bounce 0.5s ease;
 }
@@ -620,21 +741,155 @@ main {
 
 .form-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .form-header-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
   object-fit: cover;
   border: 2px solid var(--accent-gold);
 }
 
 .form-header h2 {
-  margin-bottom: 0;
+  margin-bottom: 0.25rem;
+}
+
+.form-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Category Select */
+.category-select {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.category-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-option:hover {
+  border-color: var(--accent-gold);
+  background: rgba(255, 215, 0, 0.05);
+}
+
+.category-option.selected {
+  border-color: var(--accent-gold);
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+}
+
+.category-option-icon {
+  font-size: 1.5rem;
+}
+
+.category-option-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.category-option.selected .category-option-label {
+  color: var(--accent-gold);
+}
+
+/* Duration Options */
+.duration-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.duration-option {
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.duration-option:hover {
+  border-color: var(--accent-gold);
+}
+
+.duration-option.selected {
+  border-color: var(--accent-gold);
+  background: var(--accent-gold);
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+/* Form Preview */
+.form-preview {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.form-preview h4 {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.preview-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.preview-category {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 8px;
+  color: var(--accent-gold);
+  margin-bottom: 0.5rem;
+}
+
+.preview-question {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.preview-duration {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  width: 100%;
 }
 
 .form-group {
