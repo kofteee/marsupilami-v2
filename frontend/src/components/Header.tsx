@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { connectWallet, getProvider, switchToNetwork, HARDHAT_LOCAL, SAPPHIRE_TESTNET } from "../utils/sapphire";
+import logo from "../assets/marsu/logo.jpeg";
+import privacyShield from "../assets/marsu/privacy-shield.jpeg";
 
 export function Header() {
   const [account, setAccount] = useState<string | null>(null);
@@ -83,18 +85,25 @@ export function Header() {
   return (
     <header>
       <div className="header-content">
-        <h1>Marsupilami</h1>
-        <p className="tagline">Privacy-Preserving Prediction Markets</p>
+        <img src={logo} alt="Marsupilami" className="header-logo" />
+        <div>
+          <h1>Marsupilami</h1>
+          <p className="tagline">Privacy-Preserving Prediction Markets</p>
+        </div>
+        <span className="privacy-badge">
+          <img src={privacyShield} alt="" style={{ width: 16, height: 16, borderRadius: 4 }} />
+          TEE Protected
+        </span>
       </div>
 
       <div className="header-actions">
         {account ? (
           <>
             <div className="network-switcher">
-              <button onClick={handleSwitchToLocal} className="btn btn-small">
+              <button onClick={handleSwitchToLocal} className="btn btn-small btn-secondary">
                 Local
               </button>
-              <button onClick={handleSwitchToTestnet} className="btn btn-small">
+              <button onClick={handleSwitchToTestnet} className="btn btn-small btn-secondary">
                 Testnet
               </button>
             </div>
