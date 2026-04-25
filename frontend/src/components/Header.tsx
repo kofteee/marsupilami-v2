@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { connectWallet, getProvider, switchToNetwork, HARDHAT_LOCAL, SAPPHIRE_TESTNET } from "../utils/sapphire";
 import logo from "../assets/marsu/logo.jpeg";
 import privacyShield from "../assets/marsu/privacy-shield.jpeg";
+import connectWalletIcon from "../assets/marsu/connect-wallet.jpeg";
 
 export function Header() {
   const [account, setAccount] = useState<string | null>(null);
@@ -115,7 +116,8 @@ export function Header() {
             </div>
           </>
         ) : (
-          <button onClick={handleConnect} className="btn btn-primary">
+          <button onClick={handleConnect} className="btn btn-primary connect-wallet-btn">
+            <img src={connectWalletIcon} alt="" className="btn-icon" />
             Connect Wallet
           </button>
         )}
