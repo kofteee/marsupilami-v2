@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMarketInfo, useMyPosition, usePlaceBet, useClaim } from "../hooks/useMarket";
+import { parseCategory, CATEGORIES, CategoryId } from "../App";
 import openMarket from "../assets/marsu/open-market.jpeg";
 import closedMarket from "../assets/marsu/closed-market.jpeg";
 import resolvedMarket from "../assets/marsu/resolved-market.jpeg";
@@ -16,9 +17,10 @@ const STATUS_ICONS = [openMarket, closedMarket, resolvedMarket, closedMarket];
 
 interface MarketProps {
   address: string;
+  categoryFilter?: CategoryId;
 }
 
-export function Market({ address }: MarketProps) {
+export function Market({ address, categoryFilter = "all" }: MarketProps) {
   const { data: market, isLoading, error } = useMarketInfo(address);
   const { data: position } = useMyPosition(address);
   const placeBet = usePlaceBet(address);
@@ -29,6 +31,14 @@ export function Market({ address }: MarketProps) {
   if (isLoading) return <div className="card loading-card">Loading market...</div>;
   if (error) return <div className="card error">Error loading market</div>;
   if (!market) return null;
+
+  const { category, cleanQuestion } = parseCategory(market.question);
+  const categoryInfo = CATEGORIES.find(c => c.id === category);
+
+  // Filter by category if not "all"
+  if (categoryFilter !== "all" && category !== categoryFilter) {
+    return null;
+  }
 
   const deadline = new Date(market.bettingDeadline * 1000);
   const isOpen = market.state === 0 && Date.now() < deadline.getTime();
@@ -43,7 +53,14 @@ export function Market({ address }: MarketProps) {
           alt={STATES[market.state]}
           className="market-status-icon"
         />
-        <h2>{market.question}</h2>
+        <div className="market-header-content">
+          <h2>{cleanQuestion}</h2>
+          {categoryInfo && (
+            <span className={`category-badge category-${category}`}>
+              {categoryInfo.icon} {categoryInfo.label}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="market-status">
