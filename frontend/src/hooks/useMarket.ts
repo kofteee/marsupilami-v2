@@ -5,6 +5,62 @@ import PredictionMarketABI from "../abi/PredictionMarket.json";
 import MarketFactoryABI from "../abi/MarketFactory.json";
 import { getContracts } from "../utils/config";
 
+export interface DemoState {
+  marketAddress: string;
+  question: string;
+  startedAt: string;
+  totalBettors: number;
+  durationMin: number;
+  marketFactory: string;
+}
+
+export interface LiveBet {
+  user: string;
+  amount: string;
+  blockNumber: number;
+  txHash: string;
+}
+
+export function useDemoState() {
+  return useQuery<DemoState | null>({
+    queryKey: ["demoState"],
+    queryFn: async () => {
+      try {
+        const res = await fetch("/demo-state.json", { cache: "no-store" });
+        if (!res.ok) return null;
+        return res.json() as Promise<DemoState>;
+      } catch {
+        return null;
+      }
+    },
+    refetchInterval: 5000,
+  });
+}
+
+export function useLiveFeed(marketAddress: string | undefined) {
+  return useQuery<LiveBet[]>({
+    queryKey: ["livefeed", marketAddress],
+    queryFn: async (): Promise<LiveBet[]> => {
+      if (!marketAddress) return [];
+      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+      const contract = new ethers.Contract(marketAddress, PredictionMarketABI, provider);
+      const currentBlock = await provider.getBlockNumber();
+      const fromBlock = Math.max(0, currentBlock - 2000);
+      const events = await contract.queryFilter(contract.filters.BetPlaced(), fromBlock);
+      return events
+        .map(e => ({
+          user: e.args[0] as string,
+          amount: ethers.formatEther(e.args[1] as bigint),
+          blockNumber: e.blockNumber,
+          txHash: e.transactionHash,
+        }))
+        .reverse();
+    },
+    refetchInterval: 2000,
+    enabled: !!marketAddress,
+  });
+}
+
 export interface MarketInfo {
   address: string;
   question: string;
@@ -29,9 +85,8 @@ export function useMarkets() {
   return useQuery({
     queryKey: ["markets"],
     queryFn: async (): Promise<string[]> => {
-      const provider = await getProvider();
-      const network = await provider.getNetwork();
-      const contracts = getContracts(network.chainId);
+      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
+      const contracts = getContracts(BigInt(31337));
 
       if (!contracts.marketFactory) {
         return [];
@@ -47,7 +102,7 @@ export function useMarkets() {
       const markets = await factory.getMarkets(0, count);
       return markets;
     },
-    refetchInterval: 30000,
+    refetchInterval: 5000,
   });
 }
 
@@ -55,7 +110,7 @@ export function useMarketInfo(marketAddress: string) {
   return useQuery({
     queryKey: ["market", marketAddress],
     queryFn: async (): Promise<MarketInfo> => {
-      const provider = await getProvider();
+      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
       const market = new ethers.Contract(
         marketAddress,
         PredictionMarketABI,
@@ -79,7 +134,7 @@ export function useMarketInfo(marketAddress: string) {
         noOdds: Number(odds.noBps) / 100,
       };
     },
-    refetchInterval: 10000,
+    refetchInterval: 2000,
   });
 }
 

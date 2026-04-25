@@ -23,7 +23,7 @@ contract PredictionMarket {
     }
 
     // ============ Constants ============
-    uint256 public constant ODDS_UPDATE_INTERVAL = 5 minutes;
+    uint256 public constant ODDS_UPDATE_INTERVAL = 2 minutes;
     uint256 public constant RESOLUTION_WINDOW = 24 hours;
     uint256 public constant MIN_BET = 0.01 ether;
 

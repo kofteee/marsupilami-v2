@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Header } from "./components/Header";
 import { Market } from "./components/Market";
 import { CreateMarket } from "./components/CreateMarket";
+import { LiveFeed } from "./components/LiveFeed";
 import { useMarkets } from "./hooks/useMarket";
 import spottedPattern from "./assets/marsu/spotted-pattern.jpeg";
 import logo from "./assets/marsu/logo.jpeg";
@@ -83,6 +84,7 @@ function MarketsTab() {
 
   return (
     <div className="markets-tab">
+      <LiveFeed />
       <div className="category-filters">
         {CATEGORIES.map((category) => (
           <button

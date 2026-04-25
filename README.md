@@ -171,6 +171,51 @@ This runs the full test suite covering:
 - Payout calculations
 - Edge cases and security checks
 
+## Live Demo Simulation
+
+Simulate 100–200 anonymous accounts betting on a single market over 10 real minutes, with the frontend updating live.
+
+### Setup (one-time)
+
+```bash
+# Terminal 1 — start the local blockchain (keep running)
+cd contracts
+npx hardhat node
+
+# Terminal 2 — deploy contracts
+cd contracts
+npx hardhat run scripts/deploy.ts --network localhost
+
+# Terminal 3 — start the frontend
+cd frontend
+npm install      # first time only
+npm run dev
+```
+
+Open Chrome at **http://localhost:5173**. No wallet connection needed to watch the live feed.
+
+### Run the simulation
+
+```bash
+# Terminal 4
+cd contracts
+npx hardhat run demo/simulate.ts --network localhost
+```
+
+The script will:
+1. Create a market: *"Will Bitcoin surpass $150,000 before the end of 2026?"*
+2. Generate 100–200 fresh wallets and fund them from the Hardhat deployer
+3. Spread all bets randomly over 10 real minutes
+
+A **LIVE DEMO** panel appears automatically at the top of the Markets tab in the frontend, showing:
+- A progress bar counting down the 10-minute window
+- A live YES/NO odds bar (updates every 2 minutes by contract design)
+- A scrolling feed of every bet — address, amount, and `??? (private)` for the choice
+
+> **Why is the choice hidden?** Each wallet's YES/NO selection is encrypted by Oasis Sapphire's TEE before it hits the chain. The on-chain event only records the wallet address and ETH amount — the choice itself is never exposed.
+
+
+
 ## Creating Markets via CLI
 
 You can also create markets from the command line:
@@ -205,7 +250,7 @@ User B bets NO  → Encrypted → TEE decrypts internally → State updated priv
 **Key Privacy Guarantees:**
 - Your bet choice (YES/NO) is never exposed on-chain
 - Only you can view your own position via `getMyPosition()`
-- Aggregated odds update every 5 minutes (not per-bet) to prevent correlation
+- Aggregated odds update every 2 minutes (not per-bet) to prevent correlation
 - The deposit amount is visible, but its allocation to YES/NO pools is hidden
 
 ## Smart Contract Overview
