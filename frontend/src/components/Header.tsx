@@ -76,6 +76,12 @@ export function Header() {
     }
   };
 
+  const handleDisconnect = () => {
+    setAccount(null);
+    setChainId(null);
+    setError(null);
+  };
+
   const getNetworkName = () => {
     if (!chainId) return "Unknown";
     if (chainId === "31337") return "Hardhat Local";
@@ -113,6 +119,9 @@ export function Header() {
               <span className="address">
                 {account.slice(0, 6)}...{account.slice(-4)}
               </span>
+              <button onClick={handleDisconnect} className="btn btn-small btn-disconnect">
+                Disconnect
+              </button>
             </div>
           </>
         ) : (

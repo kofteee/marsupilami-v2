@@ -135,6 +135,19 @@ header {
   color: var(--accent-gold-light);
 }
 
+.btn-disconnect {
+  background: transparent;
+  border: 1px solid var(--accent-no);
+  color: var(--accent-no);
+  opacity: 0.8;
+}
+
+.btn-disconnect:hover {
+  background: var(--accent-no);
+  color: white;
+  opacity: 1;
+}
+
 .header-error {
   color: var(--accent-no);
   font-size: 0.875rem;
