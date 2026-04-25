@@ -311,6 +311,39 @@ main {
 }
 
 /* Market Card */
+.market-card {
+  position: relative;
+}
+
+.market-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.market-status-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid var(--border-gold);
+  flex-shrink: 0;
+}
+
+.market-header h2 {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.loading-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--accent-gold);
+}
+
 .market-status {
   display: flex;
   gap: 0.5rem;
@@ -353,6 +386,24 @@ main {
   border: 1px solid var(--border);
 }
 
+.outcome-badge.outcome-yes {
+  background: var(--accent-yes-bg);
+  color: var(--accent-yes);
+  border-color: var(--accent-yes);
+}
+
+.outcome-badge.outcome-no {
+  background: var(--accent-no-bg);
+  color: var(--accent-no);
+  border-color: var(--accent-no);
+}
+
+.outcome-badge.outcome-invalid {
+  background: rgba(255, 215, 0, 0.1);
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
 .market-info {
   font-size: 0.875rem;
   color: var(--text-secondary);
@@ -376,6 +427,15 @@ main {
   border-radius: 12px;
   text-align: center;
   transition: all 0.3s ease;
+}
+
+.odds-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+  border: 2px solid currentColor;
 }
 
 .odds-box.yes {
