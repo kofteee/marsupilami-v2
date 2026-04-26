@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "deploy:local": "../scripts/deploy-local.sh",
+    "deploy:testnet": "../scripts/deploy-testnet.sh"
   },
   "keywords": [],
   "author": "",
