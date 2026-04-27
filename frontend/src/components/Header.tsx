@@ -4,13 +4,18 @@ import logo from "../assets/marsu/logo.jpeg";
 import privacyShield from "../assets/marsu/privacy-shield.jpeg";
 import connectWalletIcon from "../assets/marsu/connect-wallet.jpeg";
 
+const DISCONNECTED_KEY = "marsupilami_disconnected";
+
 export function Header() {
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkConnection();
+    // Only auto-connect if user hasn't explicitly disconnected
+    if (!localStorage.getItem(DISCONNECTED_KEY)) {
+      checkConnection();
+    }
 
     if (window.ethereum) {
       window.ethereum.on("accountsChanged", handleAccountsChanged);
@@ -52,6 +57,7 @@ export function Header() {
   const handleConnect = async () => {
     try {
       setError(null);
+      localStorage.removeItem(DISCONNECTED_KEY);
       const addr = await connectWallet();
       setAccount(addr);
       await checkConnection();
@@ -77,6 +83,7 @@ export function Header() {
   };
 
   const handleDisconnect = () => {
+    localStorage.setItem(DISCONNECTED_KEY, "true");
     setAccount(null);
     setChainId(null);
     setError(null);
