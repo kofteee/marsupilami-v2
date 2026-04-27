@@ -1,6 +1,6 @@
 /**
  * Demo: Simulate 100-200 accounts betting on a freshly created market
- * over a 10-minute window.
+ * over a 10-minute window, then resolve and pay out winners.
  *
  * Run:
  *   cd contracts
@@ -24,6 +24,7 @@ const FUND_ETH         = "0.08";              // ETH given to each bettor wallet
 const MIN_BET_ETH      = 0.01;
 const MAX_BET_ETH      = 0.05;
 const FUND_BATCH_SIZE  = 25;                  // wallets funded per tx batch
+const ORACLE_STAKE     = "100";               // ROSE required for oracle registration
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -70,16 +71,45 @@ async function main() {
   console.log(`Duration   : ${DURATION_MIN} minutes`);
   console.log("=".repeat(56));
 
-  // 2. Create a market (contract minimum is 1 hour)
+  // ─── Phase 0: Register 3 Oracles ─────────────────────────────────────────
+  console.log(`\n[0/7] Registering 3 oracles...`);
+  const oracleRegistry = await ethers.getContractAt("OracleRegistry", addresses.oracleRegistry);
+  const stakeAmount = ethers.parseEther(ORACLE_STAKE);
+
+  // Create 3 oracle wallets
+  const oracleWallets = Array.from({ length: 3 }, () =>
+    ethers.Wallet.createRandom().connect(ethers.provider)
+  );
+
+  // Fund and register each oracle
+  for (let i = 0; i < 3; i++) {
+    // Fund oracle wallet (needs stake + gas)
+    const fundTx = await deployer.sendTransaction({
+      to: oracleWallets[i].address,
+      value: ethers.parseEther("101")  // 100 for stake + 1 for gas
+    });
+    await fundTx.wait();
+
+    // Register as oracle
+    const regTx = await oracleRegistry.connect(oracleWallets[i]).register({ value: stakeAmount });
+    await regTx.wait();
+
+    console.log(`      Oracle ${i + 1}: ${oracleWallets[i].address}`);
+  }
+
+  const oracleAddresses = oracleWallets.map(w => w.address);
+  console.log(`      All 3 oracles registered with ${ORACLE_STAKE} ETH stake each`);
+
+  // ─── Phase 1: Create Market ──────────────────────────────────────────────
   const factory = await ethers.getContractAt("MarketFactory", addresses.marketFactory);
   const question = "Will Bitcoin surpass $150,000 before the end of 2026?";
   const durationSec = 2 * 60 * 60; // 2 hours — well above the 1-hour minimum
 
-  console.log(`\n[1/4] Creating market...`);
+  console.log(`\n[1/7] Creating market with designated oracles...`);
   console.log(`      "${question}"`);
 
   const countBefore = await factory.getMarketCount();
-  const createTx = await factory.createMarket(question, durationSec);
+  const createTx = await factory.createMarket(question, durationSec, oracleAddresses);
   await createTx.wait();
   const countAfter = await factory.getMarketCount();
   if (countAfter <= countBefore) throw new Error("Market creation failed — count did not increase");
@@ -103,18 +133,20 @@ async function main() {
     durationMin: DURATION_MIN,
     oddsUpdateMin: ODDS_UPDATE_MIN,
     marketFactory: addresses.marketFactory,
+    oracleRegistry: addresses.oracleRegistry,
+    oracles: oracleAddresses,
   }, null, 2));
   console.log(`      Demo state written → frontend/public/demo-state.json`);
 
-  // 3. Generate wallets
-  console.log(`\n[2/4] Generating ${NUM_ACCOUNTS} wallets...`);
+  // ─── Phase 2: Generate Wallets ───────────────────────────────────────────
+  console.log(`\n[2/7] Generating ${NUM_ACCOUNTS} wallets...`);
   const provider = ethers.provider;
   const wallets  = Array.from({ length: NUM_ACCOUNTS }, () =>
     ethers.Wallet.createRandom().connect(provider)
   );
 
-  // 4. Fund wallets in batches
-  console.log(`\n[3/4] Funding wallets (${FUND_ETH} ETH each)...`);
+  // ─── Phase 3: Fund Wallets ───────────────────────────────────────────────
+  console.log(`\n[3/7] Funding wallets (${FUND_ETH} ETH each)...`);
   const fundValue = ethers.parseEther(FUND_ETH);
 
   for (let i = 0; i < wallets.length; i += FUND_BATCH_SIZE) {
@@ -128,8 +160,8 @@ async function main() {
   }
   console.log(`      All ${NUM_ACCOUNTS} wallets funded.        `);
 
-  // 5. Schedule bets at random times within DURATION_MIN minutes
-  console.log(`\n[4/4] Placing ${NUM_ACCOUNTS} bets over ${DURATION_MIN} minutes...\n`);
+  // ─── Phase 4: Place Bets ─────────────────────────────────────────────────
+  console.log(`\n[4/7] Placing ${NUM_ACCOUNTS} bets over ${DURATION_MIN} minutes...\n`);
 
   const totalMs   = DURATION_MIN * 60 * 1000;
   const schedule  = wallets
@@ -141,9 +173,11 @@ async function main() {
   let failCount = 0;
   const startTs = Date.now();
 
+  // Track which wallets bet on which side for claiming later
+  const yesBettors: typeof wallets = [];
+  const noBettors: typeof wallets = [];
+
   // ── Parallel odds clock ──────────────────────────────────────────────────
-  // Every ODDS_UPDATE_MIN real minutes: advance chain clock past the interval,
-  // trigger updateOdds(), and print the current public YES/NO pools + prices.
   async function printOdds(tick: number) {
     const pubYes = await market.publicYesPool();
     const pubNo  = await market.publicNoPool();
@@ -176,7 +210,6 @@ async function main() {
       tick++;
     }
   })();
-  // ────────────────────────────────────────────────────────────────────────
 
   const betPromises: Promise<void>[] = schedule.map(({ wallet, delayMs }) =>
     sleep(delayMs).then(async () => {
@@ -190,7 +223,13 @@ async function main() {
         const tx = await (market.connect(wallet) as any).placeBet(choice, { value: betWei });
         await tx.wait();
 
-        if (choice === 0) yesCount++; else noCount++;
+        if (choice === 0) {
+          yesCount++;
+          yesBettors.push(wallet);
+        } else {
+          noCount++;
+          noBettors.push(wallet);
+        }
 
         const betNum = yesCount + noCount;
         console.log(
@@ -207,12 +246,12 @@ async function main() {
 
   await Promise.all([...betPromises, oddsClock]);
 
-  // 6. Summary
+  // Betting summary
   const marketTotalDeposits = await market.totalDeposits();
   const elapsed             = Math.round((Date.now() - startTs) / 1000);
 
   console.log("\n" + "=".repeat(56));
-  console.log("  Simulation Complete");
+  console.log("  Betting Phase Complete");
   console.log("=".repeat(56));
   console.log(`Duration        : ${elapsed}s`);
   console.log(`Bets placed     : ${yesCount + noCount} / ${NUM_ACCOUNTS}`);
@@ -220,7 +259,93 @@ async function main() {
   console.log(`  NO            : ${noCount}`);
   console.log(`  Failed        : ${failCount}`);
   console.log(`ETH deposited   : ${ethers.formatEther(marketTotalDeposits)} ETH (on-chain)`);
-  console.log(`Market address  : ${marketAddress}`);
+  console.log("=".repeat(56));
+
+  // ─── Phase 5: Close Market ───────────────────────────────────────────────
+  console.log(`\n[5/7] Closing market...`);
+  // Advance time past the betting deadline
+  await ethers.provider.send("evm_increaseTime", [durationSec + 60]);
+  await ethers.provider.send("evm_mine", []);
+
+  const closeTx = await market.closeMarket();
+  await closeTx.wait();
+  console.log(`      Market closed. Final pools revealed.`);
+
+  const finalYesPool = await market.publicYesPool();
+  const finalNoPool = await market.publicNoPool();
+  console.log(`      Final YES Pool: ${ethers.formatEther(finalYesPool)} ETH`);
+  console.log(`      Final NO Pool:  ${ethers.formatEther(finalNoPool)} ETH`);
+
+  // ─── Phase 6: Oracle Resolution ──────────────────────────────────────────
+  console.log(`\n[6/7] Oracles voting to resolve market...`);
+
+  // Determine outcome based on which pool is larger (simulating real-world result)
+  // For demo purposes, we'll vote YES if more people bet YES, NO otherwise
+  const OUTCOME_YES = 1;
+  const OUTCOME_NO = 2;
+  const outcome = yesCount >= noCount ? OUTCOME_YES : OUTCOME_NO;
+  const outcomeLabel = outcome === OUTCOME_YES ? "YES" : "NO";
+
+  // All oracles vote for the same outcome (2 votes needed for majority)
+  for (let i = 0; i < 2; i++) {
+    const voteTx = await market.connect(oracleWallets[i]).submitResolution(outcome);
+    await voteTx.wait();
+    console.log(`      Oracle ${i + 1} voted ${outcomeLabel}`);
+  }
+
+  const finalOutcome = await market.outcome();
+  const finalState = await market.state();
+  const outcomeNames = ["UNRESOLVED", "YES", "NO", "INVALID"];
+  console.log(`      Market resolved: ${outcomeNames[Number(finalOutcome)]}`);
+  console.log(`      Market state: ${finalState === 2n ? "RESOLVED" : "ERROR"}`);
+
+  // ─── Phase 7: Process Claims ─────────────────────────────────────────────
+  console.log(`\n[7/7] Processing claims for winners...`);
+
+  const winners = outcome === OUTCOME_YES ? yesBettors : noBettors;
+  const losers = outcome === OUTCOME_YES ? noBettors : yesBettors;
+
+  console.log(`      Winners (${outcomeLabel} bettors): ${winners.length}`);
+  console.log(`      Losers: ${losers.length}`);
+
+  let totalClaimed = 0n;
+  let claimCount = 0;
+  let claimErrors = 0;
+
+  // Process claims for winners
+  for (const wallet of winners) {
+    try {
+      const balBefore = await ethers.provider.getBalance(wallet.address);
+      const claimTx = await market.connect(wallet).claim();
+      const receipt = await claimTx.wait();
+      const gasUsed = receipt!.gasUsed * receipt!.gasPrice;
+      const balAfter = await ethers.provider.getBalance(wallet.address);
+
+      const claimed = balAfter - balBefore + gasUsed;
+      totalClaimed += claimed;
+      claimCount++;
+    } catch (err: any) {
+      claimErrors++;
+    }
+  }
+
+  console.log(`      Claims processed: ${claimCount}`);
+  console.log(`      Claim errors: ${claimErrors}`);
+  console.log(`      Total paid out: ${ethers.formatEther(totalClaimed)} ETH`);
+
+  // ─── Final Summary ───────────────────────────────────────────────────────
+  console.log("\n" + "=".repeat(56));
+  console.log("  DEMO COMPLETE");
+  console.log("=".repeat(56));
+  console.log(`Market         : ${marketAddress}`);
+  console.log(`Question       : ${question}`);
+  console.log(`Total bets     : ${yesCount + noCount}`);
+  console.log(`  YES bettors  : ${yesCount}`);
+  console.log(`  NO bettors   : ${noCount}`);
+  console.log(`Total deposited: ${ethers.formatEther(marketTotalDeposits)} ETH`);
+  console.log(`Outcome        : ${outcomeNames[Number(finalOutcome)]}`);
+  console.log(`Winners paid   : ${claimCount}`);
+  console.log(`Total paid out : ${ethers.formatEther(totalClaimed)} ETH`);
   console.log("=".repeat(56));
 }
 
