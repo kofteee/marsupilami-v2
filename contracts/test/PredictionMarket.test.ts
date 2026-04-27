@@ -36,8 +36,9 @@ describe("Prediction Market System", function () {
     await oracleRegistry.connect(oracle2).register({ value: MIN_STAKE });
     await oracleRegistry.connect(oracle3).register({ value: MIN_STAKE });
 
-    // Create a market (1 day duration)
-    const tx = await marketFactory.createMarket("Will it rain tomorrow?", ONE_DAY);
+    // Create a market (1 day duration) with 3 designated oracles
+    const oracleAddresses = [oracle1.address, oracle2.address, oracle3.address];
+    const tx = await marketFactory.createMarket("Will it rain tomorrow?", ONE_DAY, oracleAddresses);
     const receipt = await tx.wait();
 
     // Get market address from event
@@ -101,32 +102,56 @@ describe("Prediction Market System", function () {
     it("should create markets", async function () {
       expect(await marketFactory.getMarketCount()).to.equal(1);
 
-      await marketFactory.createMarket("Test question?", ONE_DAY);
+      const oracles = [oracle1.address, oracle2.address, oracle3.address];
+      await marketFactory.createMarket("Test question?", ONE_DAY, oracles);
       expect(await marketFactory.getMarketCount()).to.equal(2);
     });
 
     it("should reject duration too short", async function () {
+      const oracles = [oracle1.address, oracle2.address, oracle3.address];
       await expect(
-        marketFactory.createMarket("Question?", 30 * 60) // 30 minutes
+        marketFactory.createMarket("Question?", 30 * 60, oracles) // 30 minutes
       ).to.be.revertedWith("Duration too short");
     });
 
     it("should reject duration too long", async function () {
+      const oracles = [oracle1.address, oracle2.address, oracle3.address];
       await expect(
-        marketFactory.createMarket("Question?", 31 * ONE_DAY) // 31 days
+        marketFactory.createMarket("Question?", 31 * ONE_DAY, oracles) // 31 days
       ).to.be.revertedWith("Duration too long");
     });
 
     it("should reject empty question", async function () {
+      const oracles = [oracle1.address, oracle2.address, oracle3.address];
       await expect(
-        marketFactory.createMarket("", ONE_DAY)
+        marketFactory.createMarket("", ONE_DAY, oracles)
       ).to.be.revertedWith("Empty question");
     });
 
+    it("should reject wrong number of oracles", async function () {
+      await expect(
+        marketFactory.createMarket("Question?", ONE_DAY, [oracle1.address, oracle2.address])
+      ).to.be.revertedWith("Must provide exactly 3 oracles");
+    });
+
+    it("should reject unregistered oracles", async function () {
+      const randomAddr = ethers.Wallet.createRandom().address;
+      await expect(
+        marketFactory.createMarket("Question?", ONE_DAY, [oracle1.address, oracle2.address, randomAddr])
+      ).to.be.revertedWith("Oracle not registered");
+    });
+
+    it("should reject duplicate oracles", async function () {
+      await expect(
+        marketFactory.createMarket("Question?", ONE_DAY, [oracle1.address, oracle1.address, oracle2.address])
+      ).to.be.revertedWith("Duplicate oracle");
+    });
+
     it("should paginate markets correctly", async function () {
+      const oracles = [oracle1.address, oracle2.address, oracle3.address];
       // Create 4 more markets (5 total)
       for (let i = 0; i < 4; i++) {
-        await marketFactory.createMarket(`Question ${i}?`, ONE_DAY);
+        await marketFactory.createMarket(`Question ${i}?`, ONE_DAY, oracles);
       }
 
       const page1 = await marketFactory.getMarkets(0, 2);
@@ -242,7 +267,7 @@ describe("Prediction Market System", function () {
     it("should reject non-oracle votes", async function () {
       await expect(
         market.connect(user1).submitResolution(1)
-      ).to.be.revertedWith("Not an oracle");
+      ).to.be.revertedWith("Not an oracle for this market");
     });
 
     it("should reject duplicate votes", async function () {
@@ -253,28 +278,25 @@ describe("Prediction Market System", function () {
       ).to.be.revertedWith("Already voted");
     });
 
-    it("should resolve with majority YES", async function () {
+    it("should resolve with majority YES (2/3 oracles)", async function () {
       await market.connect(oracle1).submitResolution(1); // YES
-      await market.connect(oracle2).submitResolution(1); // YES
-      await market.connect(oracle3).submitResolution(1); // YES
+      await market.connect(oracle2).submitResolution(1); // YES - resolves immediately
 
       expect(await market.outcome()).to.equal(1); // YES
       expect(await market.state()).to.equal(2); // RESOLVED
     });
 
-    it("should resolve with majority NO", async function () {
+    it("should resolve with majority NO (2/3 oracles)", async function () {
       await market.connect(oracle1).submitResolution(2); // NO
-      await market.connect(oracle2).submitResolution(2); // NO
-      await market.connect(oracle3).submitResolution(2); // NO
+      await market.connect(oracle2).submitResolution(2); // NO - resolves immediately
 
       expect(await market.outcome()).to.equal(2); // NO
       expect(await market.state()).to.equal(2); // RESOLVED
     });
 
-    it("should resolve with majority INVALID", async function () {
+    it("should resolve with majority INVALID (2/3 oracles)", async function () {
       await market.connect(oracle1).submitResolution(3); // INVALID
-      await market.connect(oracle2).submitResolution(3); // INVALID
-      await market.connect(oracle3).submitResolution(3); // INVALID
+      await market.connect(oracle2).submitResolution(3); // INVALID - resolves immediately
 
       expect(await market.outcome()).to.equal(3); // INVALID
       expect(await market.state()).to.equal(2); // RESOLVED
@@ -301,10 +323,9 @@ describe("Prediction Market System", function () {
     });
 
     it("should pay winner proportionally (YES wins)", async function () {
-      // Resolve as YES
+      // Resolve as YES (2 votes is enough)
       await market.connect(oracle1).submitResolution(1);
       await market.connect(oracle2).submitResolution(1);
-      await market.connect(oracle3).submitResolution(1);
 
       const balanceBefore = await ethers.provider.getBalance(user1.address);
       const tx = await market.connect(user1).claim();
@@ -318,10 +339,9 @@ describe("Prediction Market System", function () {
     });
 
     it("should pay winner proportionally (NO wins)", async function () {
-      // Resolve as NO
+      // Resolve as NO (2 votes is enough)
       await market.connect(oracle1).submitResolution(2);
       await market.connect(oracle2).submitResolution(2);
-      await market.connect(oracle3).submitResolution(2);
 
       const balanceBefore = await ethers.provider.getBalance(user2.address);
       const tx = await market.connect(user2).claim();
@@ -335,10 +355,9 @@ describe("Prediction Market System", function () {
     });
 
     it("should refund on INVALID outcome", async function () {
-      // Resolve as INVALID
+      // Resolve as INVALID (2 votes is enough)
       await market.connect(oracle1).submitResolution(3);
       await market.connect(oracle2).submitResolution(3);
-      await market.connect(oracle3).submitResolution(3);
 
       const balance1Before = await ethers.provider.getBalance(user1.address);
       const tx1 = await market.connect(user1).claim();
@@ -362,7 +381,6 @@ describe("Prediction Market System", function () {
     it("should reject double claims", async function () {
       await market.connect(oracle1).submitResolution(1);
       await market.connect(oracle2).submitResolution(1);
-      await market.connect(oracle3).submitResolution(1);
 
       await market.connect(user1).claim();
 
@@ -372,7 +390,6 @@ describe("Prediction Market System", function () {
     it("should reject claims with no position", async function () {
       await market.connect(oracle1).submitResolution(1);
       await market.connect(oracle2).submitResolution(1);
-      await market.connect(oracle3).submitResolution(1);
 
       await expect(market.connect(owner).claim()).to.be.revertedWith("No position");
     });
@@ -383,30 +400,22 @@ describe("Prediction Market System", function () {
   });
 
   describe("Oracle Slashing", function () {
-    let oracle4: HardhatEthersSigner;
-
     beforeEach(async function () {
-      // Register a 4th oracle so we can test minority voting
-      // (with 4 oracles, 3 YES votes > 2/3 majority threshold)
-      oracle4 = (await ethers.getSigners())[6];
-      await oracleRegistry.connect(oracle4).register({ value: MIN_STAKE });
-
       await market.connect(user1).placeBet(0, { value: ethers.parseEther("1") });
       await time.increase(ONE_DAY + 1);
       await market.closeMarket();
     });
 
     it("should slash minority voters", async function () {
-      const stakeBefore = (await oracleRegistry.oracles(oracle4.address)).stake;
+      const stakeBefore = (await oracleRegistry.oracles(oracle3.address)).stake;
 
-      // oracle4 votes first (will be minority), then others vote YES to resolve
-      await market.connect(oracle4).submitResolution(2); // NO (will be minority)
+      // oracle3 votes NO (will be minority), then oracle1 and oracle2 vote YES to resolve
+      await market.connect(oracle3).submitResolution(2); // NO (will be minority)
       await market.connect(oracle1).submitResolution(1); // YES
-      await market.connect(oracle2).submitResolution(1); // YES
-      await market.connect(oracle3).submitResolution(1); // YES - triggers resolution
+      await market.connect(oracle2).submitResolution(1); // YES - triggers resolution with 2/3 majority
 
-      const stakeAfter = (await oracleRegistry.oracles(oracle4.address)).stake;
-      const oracleInfo = await oracleRegistry.oracles(oracle4.address);
+      const stakeAfter = (await oracleRegistry.oracles(oracle3.address)).stake;
+      const oracleInfo = await oracleRegistry.oracles(oracle3.address);
 
       expect(stakeAfter).to.be.lessThan(stakeBefore);
       expect(oracleInfo.failedResolutions).to.equal(1);
@@ -415,10 +424,33 @@ describe("Prediction Market System", function () {
     it("should reward majority voters", async function () {
       await market.connect(oracle1).submitResolution(1); // YES
       await market.connect(oracle2).submitResolution(1); // YES
-      await market.connect(oracle3).submitResolution(1); // YES
 
       const oracle1Info = await oracleRegistry.oracles(oracle1.address);
       expect(oracle1Info.successfulResolutions).to.equal(1);
+    });
+  });
+
+  describe("Per-Market Oracle Selection", function () {
+    it("should return market oracles via getMarketOracles()", async function () {
+      const oracles = await market.getMarketOracles();
+      expect(oracles.length).to.equal(3);
+      expect(oracles).to.include(oracle1.address);
+      expect(oracles).to.include(oracle2.address);
+      expect(oracles).to.include(oracle3.address);
+    });
+
+    it("should reject globally registered oracle not assigned to market", async function () {
+      const oracle4 = (await ethers.getSigners())[6];
+      await oracleRegistry.connect(oracle4).register({ value: MIN_STAKE });
+
+      await market.connect(user1).placeBet(0, { value: ethers.parseEther("1") });
+      await time.increase(ONE_DAY + 1);
+      await market.closeMarket();
+
+      // oracle4 is registered globally but not assigned to this market
+      await expect(
+        market.connect(oracle4).submitResolution(1)
+      ).to.be.revertedWith("Not an oracle for this market");
     });
   });
 
