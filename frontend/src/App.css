@@ -76,7 +76,7 @@ body::before {
 /* Header */
 header {
   background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-  padding: 1rem 2rem;
+  padding: 0.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -91,22 +91,22 @@ header {
 }
 
 .header-logo {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 2px solid var(--accent-gold);
   object-fit: cover;
 }
 
 .header-content h1 {
-  font-size: 1.75rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--accent-gold);
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
 .header-content .tagline {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
 }
 
@@ -173,11 +173,11 @@ header {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 1rem 1.5rem;
+  padding: 0.6rem 1.25rem;
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -197,31 +197,31 @@ header {
 }
 
 .tab-icon {
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 /* Category Filters */
 .category-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
   background: var(--bg-card);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--border);
 }
 
 .category-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 16px;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -239,7 +239,7 @@ header {
 }
 
 .category-icon {
-  font-size: 1.125rem;
+  font-size: 0.95rem;
 }
 
 .category-label {
@@ -277,11 +277,11 @@ header {
 /* Main */
 main {
   flex: 1;
-  padding: 2rem;
+  padding: 1rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .actions {
@@ -395,8 +395,8 @@ main {
 /* Cards */
 .card {
   background: linear-gradient(145deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 12px;
+  padding: 1rem;
   border: 1px solid var(--border);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease;
@@ -709,7 +709,7 @@ main {
 .create-market-page {
   display: flex;
   justify-content: center;
-  padding: 1rem 0;
+  padding: 0;
 }
 
 .create-market-btn {
@@ -762,44 +762,45 @@ main {
 .form-header {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .form-header-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
   object-fit: cover;
   border: 2px solid var(--accent-gold);
 }
 
 .form-header h2 {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
+  font-size: 1.1rem;
 }
 
 .form-subtitle {
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   margin: 0;
 }
 
 /* Category Select */
 .category-select {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.5rem;
 }
 
 .category-option {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
+  gap: 0.25rem;
+  padding: 0.5rem;
   background: var(--bg-secondary);
   border: 2px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -815,11 +816,11 @@ main {
 }
 
 .category-option-icon {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
 .category-option-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -832,16 +833,16 @@ main {
 .duration-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .duration-option {
-  padding: 0.5rem 1rem;
+  padding: 0.35rem 0.75rem;
   background: var(--bg-secondary);
   border: 2px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -859,15 +860,15 @@ main {
 
 /* Form Preview */
 .form-preview {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--border);
 }
 
 .form-preview h4 {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -875,52 +876,52 @@ main {
 .preview-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem;
+  border-radius: 8px;
+  padding: 0.6rem;
 }
 
 .preview-category {
   display: inline-block;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
   background: rgba(255, 215, 0, 0.1);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--accent-gold);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 
 .preview-question {
-  font-size: 1rem;
+  font-size: 0.85rem;
   color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
 .preview-duration {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
 }
 
 .form-hint {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-secondary);
-  margin-top: 0.5rem;
+  margin-top: 0.3rem;
 }
 
 .btn-large {
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
   width: 100%;
 }
 
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .form-group label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
   color: var(--accent-gold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -928,12 +929,12 @@ main {
 
 .form-group input {
   width: 100%;
-  padding: 0.875rem;
+  padding: 0.6rem;
   border: 2px solid var(--border);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
 }
 
@@ -945,8 +946,9 @@ main {
 
 .form-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.5rem;
   justify-content: flex-end;
+  margin-top: 0.75rem;
 }
 
 .error {
