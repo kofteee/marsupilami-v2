@@ -1,8 +1,8 @@
 {
   "marketAddress": "0xCafac3dD18aC6c6e92c921884f9E4176737C052c",
   "question": "Will Bitcoin surpass $150,000 before the end of 2026?",
-  "startedAt": "2026-04-26T03:17:16.665Z",
-  "totalBettors": 196,
+  "startedAt": "2026-04-27T22:20:15.281Z",
+  "totalBettors": 102,
   "durationMin": 10,
   "oddsUpdateMin": 2,
   "marketFactory": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"

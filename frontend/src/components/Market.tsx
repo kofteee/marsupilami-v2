@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMarketInfo, useMyPosition, usePlaceBet, useClaim } from "../hooks/useMarket";
+import { useState, useEffect } from "react";
+import { useMarketInfo, useMyPosition, usePlaceBet, useClaim, useDemoState } from "../hooks/useMarket";
 import { parseCategory, CATEGORIES } from "../App";
 import type { CategoryId } from "../App";
 import openMarket from "../assets/marsu/open-market.jpeg";
@@ -27,7 +27,19 @@ export function Market({ address, categoryFilter = "all" }: MarketProps) {
   const placeBet = usePlaceBet(address);
   const claim = useClaim(address);
 
+  const { data: demo } = useDemoState();
   const [amount, setAmount] = useState("0.1");
+
+  // Tick every second so oddsUnknown re-evaluates in real time
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const oddsUnknown = demo
+    ? (Date.now() - new Date(demo.startedAt).getTime()) / 1000 < demo.oddsUpdateMin * 60
+    : false;
 
   if (isLoading) return <div className="card loading-card">Loading market...</div>;
   if (error) return <div className="card error">Error loading market</div>;
@@ -84,14 +96,14 @@ export function Market({ address, categoryFilter = "all" }: MarketProps) {
         <div className="odds-box yes">
           <img src={yesFruit} alt="Yes" className="odds-icon" />
           <div className="odds-label">YES</div>
-          <div className="odds-value">{market.yesOdds.toFixed(1)}%</div>
-          <div className="odds-pool">{market.yesPool} ROSE</div>
+          <div className="odds-value">{oddsUnknown ? "???" : `${market.yesOdds.toFixed(1)}%`}</div>
+          <div className="odds-pool">{oddsUnknown ? "???" : `${market.yesPool} ROSE`}</div>
         </div>
         <div className="odds-box no">
           <img src={noFruit} alt="No" className="odds-icon" />
           <div className="odds-label">NO</div>
-          <div className="odds-value">{market.noOdds.toFixed(1)}%</div>
-          <div className="odds-pool">{market.noPool} ROSE</div>
+          <div className="odds-value">{oddsUnknown ? "???" : `${market.noOdds.toFixed(1)}%`}</div>
+          <div className="odds-pool">{oddsUnknown ? "???" : `${market.noPool} ROSE`}</div>
         </div>
       </div>
 
