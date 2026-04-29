@@ -86,12 +86,14 @@ export function useLiveFeed(marketAddress: string | undefined) {
 export interface MarketInfo {
   address: string;
   question: string;
+  category: string;
   bettingDeadline: number;
   resolutionDeadline: number;
   state: number;
   outcome: number;
   yesPool: string;
   noPool: string;
+  totalPool: string;
   totalDeposits: string;
   yesOdds: number;
   noOdds: number;
@@ -160,8 +162,10 @@ export function useMarketInfo(marketAddress: string) {
           resolutionDeadline: Number(info._resolutionDeadline),
           state: Number(info._state),
           outcome: Number(info._outcome),
+          category: info._category || "other",
           yesPool: ethers.formatEther(info._publicYesPool),
           noPool: ethers.formatEther(info._publicNoPool),
+          totalPool: ethers.formatEther(BigInt(info._publicYesPool) + BigInt(info._publicNoPool)),
           totalDeposits: ethers.formatEther(info._totalDeposits),
           yesOdds: Number(odds.yesBps) / 100,
           noOdds: Number(odds.noBps) / 100,

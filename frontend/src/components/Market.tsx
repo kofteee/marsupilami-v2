@@ -1,89 +1,106 @@
+import React, { useState, useEffect } from "react";
 import { useMarketInfo } from "../hooks/useMarket";
+import { CATEGORIES } from "../App";
 import { PrivateBet } from "./PrivateBet";
-import { parseCategory, CATEGORIES } from "../App";
-import type { CategoryId } from "../App";
-
-// Assets from v1
-import openMarket from "../assets/marsu/open-market.jpeg";
-import closedMarket from "../assets/marsu/closed-market.jpeg";
-import resolvedMarket from "../assets/marsu/resolved-market.jpeg";
-import yesFruit from "../assets/marsu/yes-fruit.jpeg";
-import noFruit from "../assets/marsu/no-fruit.jpeg";
-
-const STATES = ["Open", "Closed", "Resolved", "Cancelled"];
-const OUTCOMES = ["Unresolved", "YES", "NO", "Invalid"];
-const STATUS_ICONS = [openMarket, closedMarket, resolvedMarket, closedMarket];
 
 interface MarketProps {
   address: string;
-  categoryFilter?: CategoryId;
+  categoryFilter: string;
 }
 
-export function Market({ address, categoryFilter = "all" }: MarketProps) {
+const Market: React.FC<MarketProps> = ({ address, categoryFilter }) => {
   const { data: market, isLoading, error } = useMarketInfo(address);
+  const [timeLeft, setTimeLeft] = useState<string>("");
 
-  if (isLoading) return <div className="card loading-card">Loading market data...</div>;
-  if (error) return <div className="card error">Error loading market</div>;
-  if (!market) return null;
+  useEffect(() => {
+    if (!market || market.state !== 0) return;
 
-  const { category, cleanQuestion } = parseCategory(market.question);
-  const categoryInfo = CATEGORIES.find(c => c.id === category);
+    const timer = setInterval(() => {
+      const now = Math.floor(Date.now() / 1000);
+      const diff = market.bettingDeadline - now;
 
-  // Filter by category if not "all"
-  if (categoryFilter !== "all" && category !== categoryFilter) {
-    return null;
-  }
+      if (diff <= 0) {
+        setTimeLeft("EXPIRED");
+        clearInterval(timer);
+      } else {
+        const h = Math.floor(diff / 3600);
+        const m = Math.floor((diff % 3600) / 60);
+        const s = diff % 60;
+        setTimeLeft(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+      }
+    }, 1000);
 
-  const deadline = new Date(market.bettingDeadline * 1000);
-  const isResolved = market.state === 2;
+    return () => clearInterval(timer);
+  }, [market]);
+
+  if (isLoading) return <div className="market-card loading">Loading market data...</div>;
+  if (error || !market) return null;
+
+  const categoryInfo = CATEGORIES.find((c) => c.id === market.category);
+
+  // Filter logic
+  if (categoryFilter !== 'all' && market.category !== categoryFilter) return null;
 
   return (
-    <div className="card market-card">
+    <div className="market-card animate-fade-in">
       <div className="market-header">
-        <img
-          src={STATUS_ICONS[market.state]}
-          alt={STATES[market.state]}
-          className="market-status-icon"
-        />
-        <div className="market-header-content">
-          <h2>{cleanQuestion}</h2>
-          {categoryInfo && (
-            <span className={`category-badge category-${category}`}>
-              <img src={categoryInfo.icon} alt="" className="category-badge-icon" />
-              {categoryInfo.label}
-            </span>
-          )}
+        <div className="market-header-main">
+          <img 
+            src={categoryInfo?.icon || CATEGORIES.find(c => c.id === 'other')?.icon} 
+            alt={market.category} 
+            className="market-status-icon" 
+          />
+          <div className="market-title-group">
+            <h3 className="market-question">{market.question}</h3>
+            <div className="market-meta">
+              <span className={`status-badge status-${market.state === 0 ? 'open' : 'closed'}`}>
+                {market.state === 0 ? 'Open' : 'Resolved'}
+              </span>
+              <div className="market-countdown">
+                <span className="countdown-label">Time Left:</span>
+                <span className={`countdown-value ${timeLeft === 'EXPIRED' ? 'countdown-expired' : ''}`}>
+                  {timeLeft || "--:--:--"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="market-actions">
+          <div className="market-category-badge">
+            {categoryInfo && (
+              <span>
+                <img src={categoryInfo.icon} alt="" className="category-badge-icon" />
+                {categoryInfo.label}
+              </span>
+            )}
+          </div>
+          <button 
+            className="btn-copy-addr" 
+            onClick={(e) => {
+              e.stopPropagation();
+              navigator.clipboard.writeText(address);
+              alert("Market Address Copied!");
+            }}
+            title="Copy Market Address"
+          >
+            📋 Copy Address
+          </button>
         </div>
       </div>
 
-      <div className="market-status">
-        <span className={`status-badge status-${STATES[market.state].toLowerCase()}`}>
-          {STATES[market.state]}
-        </span>
-        {isResolved && (
-          <span className={`outcome-badge outcome-${OUTCOMES[market.outcome].toLowerCase()}`}>
-            {OUTCOMES[market.outcome]}
-          </span>
-        )}
-      </div>
-
-      <div className="market-info">
-        <p>Deadline: {deadline.toLocaleString()}</p>
-        <p>Total Pool: {market.totalDeposits} {market.symbol}</p>
-      </div>
-
-      <div className="odds-container">
-        <div className="odds-box yes">
-          <img src={yesFruit} alt="Yes" className="odds-icon" />
-          <div className="odds-label">YES</div>
-          <div className="odds-value">{market.yesOdds.toFixed(1)}%</div>
-          <div className="odds-pool">{market.yesPool} {market.symbol}</div>
+      <div className="market-stats-grid">
+        <div className="stat-box">
+          <span className="stat-label">Total Pool</span>
+          <span className="stat-value">{market.totalPool} {market.symbol}</span>
         </div>
-        <div className="odds-box no">
-          <img src={noFruit} alt="No" className="odds-icon" />
-          <div className="odds-label">NO</div>
-          <div className="odds-value">{market.noOdds.toFixed(1)}%</div>
-          <div className="odds-pool">{market.noPool} {market.symbol}</div>
+        <div className="stat-box">
+          <span className="stat-label">Yes Pool</span>
+          <span className="stat-value yes">{market.yesPool} {market.symbol} ({market.yesOdds}%)</span>
+        </div>
+        <div className="stat-box">
+          <span className="stat-label">No Pool</span>
+          <span className="stat-value no">{market.noPool} {market.symbol} ({market.noOdds}%)</span>
         </div>
       </div>
 
@@ -91,9 +108,11 @@ export function Market({ address, categoryFilter = "all" }: MarketProps) {
         <PrivateBet address={address} />
       </div>
 
-      <div className="market-address">
-        {address.slice(0, 6)}...{address.slice(-4)}
+      <div className="market-footer-address">
+        <code>{address}</code>
       </div>
     </div>
   );
-}
+};
+
+export { Market };

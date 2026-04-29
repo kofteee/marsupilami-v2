@@ -39,7 +39,8 @@
   --shadow-gold: 0 0 20px rgba(255, 215, 0, 0.2);
 }
 
-html, body {
+html,
+body {
   min-height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
@@ -215,7 +216,8 @@ header {
 }
 
 .tab-btn.active::before {
-  background: rgba(255, 215, 0, 0.2); /* Slightly darker yellow overlay */
+  background: rgba(255, 215, 0, 0.2);
+  /* Slightly darker yellow overlay */
 }
 
 .tab-label {
@@ -310,11 +312,30 @@ header {
   margin-top: 0.5rem;
 }
 
-.category-badge.category-sports { border-color: #22c55e; color: #22c55e; }
-.category-badge.category-politics { border-color: #6366f1; color: #6366f1; }
-.category-badge.category-boston { border-color: #f59e0b; color: #f59e0b; }
-.category-badge.category-blockchain { border-color: #14b8a6; color: #14b8a6; }
-.category-badge.category-other { border-color: #a855f7; color: #a855f7; }
+.category-badge.category-sports {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.category-badge.category-politics {
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+.category-badge.category-boston {
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.category-badge.category-blockchain {
+  border-color: #14b8a6;
+  color: #14b8a6;
+}
+
+.category-badge.category-other {
+  border-color: #a855f7;
+  color: #a855f7;
+}
 
 .market-header-content {
   flex: 1;
@@ -492,10 +513,24 @@ main {
 }
 
 @keyframes dots {
-  0%, 20% { content: ''; }
-  40% { content: '.'; }
-  60% { content: '..'; }
-  80%, 100% { content: '...'; }
+
+  0%,
+  20% {
+    content: '';
+  }
+
+  40% {
+    content: '.';
+  }
+
+  60% {
+    content: '..';
+  }
+
+  80%,
+  100% {
+    content: '...';
+  }
 }
 
 .error-message {
@@ -779,8 +814,13 @@ main {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .create-market-form {
@@ -804,8 +844,15 @@ main {
 }
 
 @keyframes bounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .form-header {
@@ -1106,8 +1153,17 @@ main {
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(0.95); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(0.95);
+  }
 }
 
 .no-markets {
@@ -1238,8 +1294,17 @@ main {
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.4; transform: scale(0.7); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.7);
+  }
 }
 
 .live-stats {
@@ -1286,6 +1351,7 @@ main {
   white-space: nowrap;
   min-width: 70px;
 }
+
 .live-progress-label:last-child {
   text-align: right;
 }
@@ -1305,16 +1371,26 @@ main {
   min-width: 110px;
 }
 
-.live-odds-side-yes { text-align: left; }
-.live-odds-side-no  { text-align: right; }
+.live-odds-side-yes {
+  text-align: left;
+}
+
+.live-odds-side-no {
+  text-align: right;
+}
 
 .live-odds-pct {
   font-weight: 700;
   font-size: 0.85rem;
 }
 
-.live-odds-side-yes .live-odds-pct { color: var(--accent-yes); }
-.live-odds-side-no  .live-odds-pct { color: var(--accent-no); }
+.live-odds-side-yes .live-odds-pct {
+  color: var(--accent-yes);
+}
+
+.live-odds-side-no .live-odds-pct {
+  color: var(--accent-no);
+}
 
 .live-odds-detail {
   font-size: 0.7rem;
@@ -1357,13 +1433,11 @@ main {
 
 .live-odds-fill-unknown {
   height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--text-secondary) 0px,
-    var(--text-secondary) 6px,
-    transparent 6px,
-    transparent 12px
-  );
+  background: repeating-linear-gradient(90deg,
+      var(--text-secondary) 0px,
+      var(--text-secondary) 6px,
+      transparent 6px,
+      transparent 12px);
   opacity: 0.35;
 }
 
@@ -1377,9 +1451,11 @@ main {
 .live-feed-list::-webkit-scrollbar {
   width: 4px;
 }
+
 .live-feed-list::-webkit-scrollbar-track {
   background: var(--bg-secondary);
 }
+
 .live-feed-list::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 2px;
@@ -1395,11 +1471,20 @@ main {
   animation: slide-in 0.3s ease;
 }
 
-.live-bet-row:last-child { border-bottom: none; }
+.live-bet-row:last-child {
+  border-bottom: none;
+}
 
 @keyframes slide-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .live-bet-addr {
@@ -1427,7 +1512,8 @@ main {
 }
 
 /* ZK Private Betting & Claiming */
-.private-bet-container, .private-claim-container {
+.private-bet-container,
+.private-claim-container {
   margin-top: 1.5rem;
   padding: 1.25rem;
   background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(20, 184, 166, 0.1) 100%);
@@ -1437,7 +1523,8 @@ main {
   overflow: hidden;
 }
 
-.private-bet-container::before, .private-claim-container::before {
+.private-bet-container::before,
+.private-claim-container::before {
   content: 'ZK-SNARK';
   position: absolute;
   top: 5px;
@@ -1449,7 +1536,8 @@ main {
   letter-spacing: 2px;
 }
 
-.private-bet-container h3, .private-claim-container h3 {
+.private-bet-container h3,
+.private-claim-container h3 {
   color: var(--accent-primary);
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
@@ -1580,8 +1668,15 @@ main {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 
@@ -1617,8 +1712,15 @@ main {
   text-align: center;
 }
 
-.bet-choice.yes { background: #4caf50; color: white; }
-.bet-choice.no { background: #f44336; color: white; }
+.bet-choice.yes {
+  background: #4caf50;
+  color: white;
+}
+
+.bet-choice.no {
+  background: #f44336;
+  color: white;
+}
 
 .bet-amount {
   font-family: 'Courier New', Courier, monospace;
@@ -1687,9 +1789,90 @@ main {
   border: 2px solid var(--accent-gold);
 }
 
-.success-icon, .loading-icon, .empty-icon {
+.success-icon,
+.loading-icon,
+.empty-icon {
   width: 80px;
   height: 80px;
   margin: 0 auto 1.5rem;
   display: block;
+}
+/* Copy Address Button Style */
+.btn-copy-addr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 10px;
+}
+
+.btn-copy-addr:hover {
+  background: var(--accent-gold);
+  color: #000;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.market-footer-address {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-align: center;
+  opacity: 0.6;
+}
+
+.duration-select {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.duration-select:focus {
+  border-color: var(--accent-gold);
+  outline: none;
+}
+
+/* Countdown Timer Style */
+.market-countdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  margin-top: 8px;
+}
+
+.countdown-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.countdown-value {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+}
+
+.countdown-expired {
+  color: var(--accent-no);
+  font-weight: 700;
+  font-size: 0.75rem;
 }
