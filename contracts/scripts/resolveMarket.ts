@@ -46,6 +46,13 @@ async function main() {
 
     console.log("Submitting oracle resolutions...");
     for (let i = 0; i < oracles.length; i++) {
+        // Check state before each vote
+        const currentState = await market.state();
+        if (currentState !== 1n) { // 1 = CLOSED
+            console.log(`Market state is now ${currentState}. Stopping additional votes.`);
+            break;
+        }
+
         const oracleAddr = oracles[i];
         const signer = signers.find(s => s.address.toLowerCase() === oracleAddr.toLowerCase());
         
@@ -53,7 +60,12 @@ async function main() {
             const hasVoted = (await market.oracleVotes(oracleAddr)).hasVoted;
             if (!hasVoted) {
                 console.log(`Oracle ${oracleAddr} voting YES...`);
-                await (await market.connect(signer).submitResolution(1)).wait(); // 1 = YES
+                try {
+                    await (await market.connect(signer).submitResolution(1)).wait(); // 1 = YES
+                } catch (e) {
+                    console.log(`Vote by ${oracleAddr} failed, likely consensus already reached.`);
+                    break;
+                }
             } else {
                 console.log(`Oracle ${oracleAddr} already voted.`);
             }

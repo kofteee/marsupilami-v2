@@ -91,15 +91,9 @@ export function Market({ address, categoryFilter = "all" }: MarketProps) {
         <PrivateBet address={address} />
       </div>
 
-      <div className="market-address">
-        {address.slice(0, 6)}...{address.slice(-4)}
-      </div>
-      <div className="market-footer">
-        <code>{address}</code>
-      </div>
       <div className="market-footer">
         <code>{address}</code>
       </div>
     </div>
   );
-}
+};

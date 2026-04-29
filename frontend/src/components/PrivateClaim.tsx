@@ -63,9 +63,16 @@ export const PrivateClaim: React.FC = () => {
                 setStatus("Claim successful! Funds transferred to your wallet.");
             }
             setTicket(null);
-        } catch (err) {
-            console.error(err);
-            setStatus("Claim failed: " + (err as any).reason || (err as Error).message);
+        } catch (err: any) {
+            console.error("Claim error:", err);
+            
+            // Extract the most meaningful error message
+            const errorMessage = err.reason || err.shortMessage || err.message || "Unknown error";
+            setStatus(`Claim failed: ${errorMessage}`);
+            
+            if (err.data) {
+              console.log("Error data:", err.data);
+            }
         } finally {
             setLoading(false);
         }
