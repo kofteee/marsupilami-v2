@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useCreateMarket, useRegisteredOracles } from "../hooks/useMarket";
 import { CATEGORIES } from "../App";
 import type { CategoryId } from "../App";
+
+// Assets from v1
 import createMarketIcon from "../assets/marsu/create-market.jpeg";
 import successIcon from "../assets/marsu/success.jpeg";
 import pendingIcon from "../assets/marsu/pending.jpeg";
@@ -39,7 +41,6 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
     });
   };
 
-  // Filter out "all" from selectable categories
   const selectableCategories = CATEGORIES.filter(c => c.id !== "all");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,7 +57,6 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
         onSuccess: () => {
           setQuestion("");
           setCategory("other");
-          setSelectedOracles([]);
           setShowSuccess(true);
           setTimeout(() => {
             setShowSuccess(false);
@@ -101,8 +101,8 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
                   type="button"
                   className={`category-option ${category === cat.id ? "selected" : ""}`}
                   onClick={() => setCategory(cat.id)}
+                  style={{ backgroundImage: `url(${cat.icon})` }}
                 >
-                  <span className="category-option-icon">{cat.icon}</span>
                   <span className="category-option-label">{cat.label}</span>
                 </button>
               ))}
@@ -123,19 +123,15 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
           </div>
 
           <div className="form-group">
-            <label>Betting Duration</label>
-            <div className="duration-options">
-              {[1, 3, 7, 14, 30].map((days) => (
-                <button
-                  key={days}
-                  type="button"
-                  className={`duration-option ${durationDays === days ? "selected" : ""}`}
-                  onClick={() => setDurationDays(days)}
-                >
-                  {days} {days === 1 ? "day" : "days"}
-                </button>
-              ))}
-            </div>
+            <label>Betting Duration (Days)</label>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={durationDays}
+              onChange={(e) => setDurationDays(parseInt(e.target.value) || 1)}
+              className="duration-input"
+            />
           </div>
 
           <div className="form-group">
@@ -164,19 +160,6 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
                 ))}
               </div>
             )}
-            <p className="form-hint">Select 3 oracles to resolve this market</p>
-          </div>
-
-          <div className="form-preview">
-            <h4>Preview</h4>
-            <div className="preview-card">
-              <span className="preview-category">
-                {selectableCategories.find(c => c.id === category)?.icon}{" "}
-                {selectableCategories.find(c => c.id === category)?.label}
-              </span>
-              <p className="preview-question">{question || "Your question will appear here..."}</p>
-              <p className="preview-duration">Betting open for {durationDays} {durationDays === 1 ? "day" : "days"}</p>
-            </div>
           </div>
 
           <div className="form-actions">
@@ -188,7 +171,7 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
               {createMarket.isPending ? (
                 <>
                   <img src={pendingIcon} alt="" className="btn-icon spinning" />
-                  Creating Market...
+                  Creating...
                 </>
               ) : (
                 <>
@@ -211,14 +194,14 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
 function getPlaceholder(category: CategoryId): string {
   switch (category) {
     case "sports":
-      return "Will the Celtics win the NBA Championship this season?";
+      return "Will the Celtics win the NBA Championship?";
     case "politics":
-      return "Will the incumbent win the next presidential election?";
+      return "Will the incumbent win the election?";
     case "boston":
-      return "Will the Green Line extension be completed on time?";
+      return "Will it snow tomorrow in Boston?";
     case "blockchain":
-      return "Will Ethereum gas fees drop below 10 gwei this month?";
+      return "Will ETH gas stay low?";
     default:
-      return "Will something happen by a specific date?";
+      return "Will something happen?";
   }
 }

@@ -23,6 +23,23 @@ export interface LiveBet {
   txHash: string;
 }
 
+export function useNetwork() {
+  return useQuery({
+    queryKey: ["network"],
+    queryFn: async () => {
+      try {
+        const provider = await getProvider();
+        const network = await provider.getNetwork();
+        return getContracts(network.chainId);
+      } catch {
+        const localProvider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+        const network = await localProvider.getNetwork();
+        return getContracts(network.chainId);
+      }
+    }
+  });
+}
+
 export function useDemoState() {
   return useQuery<DemoState | null>({
     queryKey: ["demoState"],
@@ -44,18 +61,21 @@ export function useLiveFeed(marketAddress: string | undefined) {
     queryKey: ["livefeed", marketAddress],
     queryFn: async (): Promise<LiveBet[]> => {
       if (!marketAddress) return [];
-      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-      const contract = new ethers.Contract(marketAddress, PredictionMarketABI, provider);
+      const provider = await getProvider();
+      const contract = new ethers.Contract(marketAddress, PredictionMarketABI.abi, provider);
       const currentBlock = await provider.getBlockNumber();
       const fromBlock = Math.max(0, currentBlock - 2000);
       const events = await contract.queryFilter(contract.filters.BetPlaced(), fromBlock);
       return events
-        .map(e => ({
-          user: e.args[0] as string,
-          amount: ethers.formatEther(e.args[1] as bigint),
-          blockNumber: e.blockNumber,
-          txHash: e.transactionHash,
-        }))
+        .map(e => {
+          const log = e as any;
+          return {
+            user: log.args[0] as string,
+            amount: ethers.formatEther(log.args[1] as bigint),
+            blockNumber: e.blockNumber,
+            txHash: e.transactionHash,
+          };
+        })
         .reverse();
     },
     refetchInterval: 2000,
@@ -75,34 +95,49 @@ export interface MarketInfo {
   totalDeposits: string;
   yesOdds: number;
   noOdds: number;
+  lastOddsUpdate: number;
+  symbol: string;
 }
 
-export interface Position {
-  yesAmount: string;
-  noAmount: string;
-  hasClaimed: boolean;
-}
+// Traditional Position interface removed - everything is ZK now
 
 export function useMarkets() {
   return useQuery({
     queryKey: ["markets"],
     queryFn: async (): Promise<string[]> => {
-      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-      const contracts = getContracts(BigInt(31337));
+      const getMarketsFromProvider = async (provider: any) => {
+        try {
+          const network = await provider.getNetwork();
+          const contracts = getContracts(network.chainId);
+          
+          if (!contracts.marketFactory) {
+            console.warn(`[useMarkets] No marketFactory address found for chain ${network.chainId}`);
+            return [];
+          }
 
-      if (!contracts.marketFactory) {
-        return [];
+          const factory = new ethers.Contract(contracts.marketFactory, MarketFactoryABI, provider);
+          const count = await factory.getMarketCount();
+          return await factory.getMarkets(0, count);
+        } catch (err) {
+          console.error("[useMarkets] Failed to fetch markets from provider:", err);
+          throw err;
+        }
+      };
+
+      try {
+        console.log("[useMarkets] Attempting to fetch from local provider...");
+        const localProvider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+        return await getMarketsFromProvider(localProvider);
+      } catch (err) {
+        console.warn("[useMarkets] Local provider failed, falling back to browser provider", err);
+        try {
+          const browserProvider = await getProvider();
+          return await getMarketsFromProvider(browserProvider);
+        } catch (browserErr) {
+          console.error("[useMarkets] Both local and browser providers failed", browserErr);
+          throw browserErr;
+        }
       }
-
-      const factory = new ethers.Contract(
-        contracts.marketFactory,
-        MarketFactoryABI,
-        provider
-      );
-
-      const count = await factory.getMarketCount();
-      const markets = await factory.getMarkets(0, count);
-      return markets;
     },
     refetchInterval: 5000,
   });
@@ -112,101 +147,44 @@ export function useMarketInfo(marketAddress: string) {
   return useQuery({
     queryKey: ["market", marketAddress],
     queryFn: async (): Promise<MarketInfo> => {
-      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-      const market = new ethers.Contract(
-        marketAddress,
-        PredictionMarketABI,
-        provider
-      );
-
-      const info = await market.getMarketInfo();
-      const odds = await market.getOdds();
-
-      return {
-        address: marketAddress,
-        question: info._question,
-        bettingDeadline: Number(info._bettingDeadline),
-        resolutionDeadline: Number(info._resolutionDeadline),
-        state: Number(info._state),
-        outcome: Number(info._outcome),
-        yesPool: ethers.formatEther(info._publicYesPool),
-        noPool: ethers.formatEther(info._publicNoPool),
-        totalDeposits: ethers.formatEther(info._totalDeposits),
-        yesOdds: Number(odds.yesBps) / 100,
-        noOdds: Number(odds.noBps) / 100,
+      const getInfoFromProvider = async (provider: any) => {
+        const network = await provider.getNetwork();
+        const contracts = getContracts(network.chainId);
+        const market = new ethers.Contract(marketAddress, PredictionMarketABI.abi, provider);
+        const info = await market.getMarketInfo();
+        const odds = await market.getOdds();
+        return {
+          address: marketAddress,
+          question: info._question,
+          bettingDeadline: Number(info._bettingDeadline),
+          resolutionDeadline: Number(info._resolutionDeadline),
+          state: Number(info._state),
+          outcome: Number(info._outcome),
+          yesPool: ethers.formatEther(info._publicYesPool),
+          noPool: ethers.formatEther(info._publicNoPool),
+          totalDeposits: ethers.formatEther(info._totalDeposits),
+          yesOdds: Number(odds.yesBps) / 100,
+          noOdds: Number(odds.noBps) / 100,
+          lastOddsUpdate: Number(await market.lastOddsUpdate()),
+          symbol: contracts.symbol || "ETH",
+        };
       };
+
+      try {
+        const localProvider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+        return await getInfoFromProvider(localProvider);
+      } catch (err) {
+        const browserProvider = await getProvider();
+        return await getInfoFromProvider(browserProvider);
+      }
     },
-    refetchInterval: 2000,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    refetchInterval: 5000,
   });
 }
 
-export function useMyPosition(marketAddress: string) {
-  return useQuery({
-    queryKey: ["position", marketAddress],
-    queryFn: async (): Promise<Position> => {
-      const signer = await getSigner();
-      const market = new ethers.Contract(
-        marketAddress,
-        PredictionMarketABI,
-        signer
-      );
-
-      const position = await market.getMyPosition();
-
-      return {
-        yesAmount: ethers.formatEther(position.yesAmount),
-        noAmount: ethers.formatEther(position.noAmount),
-        hasClaimed: position.hasClaimed,
-      };
-    },
-  });
-}
-
-export function usePlaceBet(marketAddress: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ choice, amount }: { choice: 0 | 1; amount: string }) => {
-      const signer = await getSigner();
-      const market = new ethers.Contract(
-        marketAddress,
-        PredictionMarketABI,
-        signer
-      );
-
-      const tx = await market.placeBet(choice, {
-        value: ethers.parseEther(amount),
-      });
-
-      return tx.wait();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["market", marketAddress] });
-      queryClient.invalidateQueries({ queryKey: ["position", marketAddress] });
-    },
-  });
-}
-
-export function useClaim(marketAddress: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const signer = await getSigner();
-      const market = new ethers.Contract(
-        marketAddress,
-        PredictionMarketABI,
-        signer
-      );
-
-      const tx = await market.claim();
-      return tx.wait();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["position", marketAddress] });
-    },
-  });
-}
+// Traditional betting and position hooks removed. Everything is ZK now.
 
 export interface OracleInfo {
   address: string;
@@ -220,37 +198,58 @@ export function useRegisteredOracles() {
   return useQuery({
     queryKey: ["oracles"],
     queryFn: async (): Promise<OracleInfo[]> => {
-      const provider = new ethers.JsonRpcProvider("http://localhost:8545");
-      const contracts = getContracts(BigInt(31337));
+      const getOraclesFromProvider = async (provider: any) => {
+        try {
+          const network = await provider.getNetwork();
+          const contracts = getContracts(network.chainId);
+          
+          if (!contracts.oracleRegistry) {
+            console.warn(`[useRegisteredOracles] No oracleRegistry address found for chain ${network.chainId}`);
+            return [];
+          }
 
-      if (!contracts.oracleRegistry) {
-        return [];
-      }
+          const registry = new ethers.Contract(
+            contracts.oracleRegistry,
+            OracleRegistryABI,
+            provider
+          );
 
-      const registry = new ethers.Contract(
-        contracts.oracleRegistry,
-        OracleRegistryABI,
-        provider
-      );
+          const count = await registry.getOracleCount();
+          const oracles: OracleInfo[] = [];
 
-      const count = await registry.getOracleCount();
-      const oracles: OracleInfo[] = [];
+          for (let i = 0; i < count; i++) {
+            const address = await registry.oracleList(i);
+            const info = await registry.oracles(address);
+            if (info.isActive) {
+              oracles.push({
+                address,
+                stake: ethers.formatEther(info.stake),
+                successfulResolutions: Number(info.successfulResolutions),
+                failedResolutions: Number(info.failedResolutions),
+                isActive: info.isActive,
+              });
+            }
+          }
+          return oracles;
+        } catch (err) {
+          console.error("[useRegisteredOracles] Failed to fetch oracles:", err);
+          throw err;
+        }
+      };
 
-      for (let i = 0; i < count; i++) {
-        const address = await registry.oracleList(i);
-        const info = await registry.oracles(address);
-        if (info.isActive) {
-          oracles.push({
-            address,
-            stake: ethers.formatEther(info.stake),
-            successfulResolutions: Number(info.successfulResolutions),
-            failedResolutions: Number(info.failedResolutions),
-            isActive: info.isActive,
-          });
+      try {
+        const localProvider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+        return await getOraclesFromProvider(localProvider);
+      } catch (err) {
+        console.warn("[useRegisteredOracles] Local provider failed, trying browser", err);
+        try {
+          const browserProvider = await getProvider();
+          return await getOraclesFromProvider(browserProvider);
+        } catch (browserErr) {
+          console.error("[useRegisteredOracles] Both providers failed", browserErr);
+          throw browserErr;
         }
       }
-
-      return oracles;
     },
     refetchInterval: 10000,
   });

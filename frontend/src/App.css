@@ -40,8 +40,9 @@
 }
 
 html, body {
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
@@ -67,10 +68,9 @@ body::before {
 }
 
 .app {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 /* Header */
@@ -170,34 +170,59 @@ header {
 }
 
 .tab-btn {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  justify-content: center;
+  padding: 0.5rem;
+  width: 120px;
+  height: 120px;
+  background-size: 80%;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -1px;
+  overflow: hidden;
+}
+
+.tab-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover::before {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .tab-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255, 215, 0, 0.05);
+  border-color: var(--accent-gold);
 }
 
 .tab-btn.active {
-  color: var(--accent-gold);
-  border-bottom-color: var(--accent-gold);
-  background: rgba(255, 215, 0, 0.1);
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
 }
 
-.tab-icon {
-  font-size: 1rem;
+.tab-btn.active::before {
+  background: rgba(255, 215, 0, 0.2); /* Slightly darker yellow overlay */
+}
+
+.tab-label {
+  position: relative;
+  z-index: 1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  text-align: center;
 }
 
 /* Category Filters */
@@ -213,37 +238,62 @@ header {
 }
 
 .category-btn {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
+  padding: 0.5rem;
+  background-size: 70%;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.category-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.category-btn:hover::before {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .category-btn:hover {
   border-color: var(--accent-gold);
-  color: var(--text-primary);
+  transform: scale(1.02);
 }
 
 .category-btn.active {
-  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
-  color: #1a1a1a;
   border-color: var(--accent-gold);
-  font-weight: 600;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
 }
 
-.category-icon {
-  font-size: 0.95rem;
+.category-btn.active::before {
+  background: rgba(255, 215, 0, 0.2);
 }
 
 .category-label {
-  white-space: nowrap;
+  position: relative;
+  z-index: 1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  white-space: pre-line;
+  text-align: center;
+  line-height: 1.2;
 }
 
 /* Category Badge on Market Card */
@@ -281,7 +331,6 @@ main {
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  overflow: hidden;
 }
 
 .actions {
@@ -793,26 +842,53 @@ main {
 }
 
 .category-option {
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
   padding: 0.5rem;
-  background: var(--bg-secondary);
+  background-size: 70%;
+  background-position: center;
+  background-repeat: no-repeat;
   border: 2px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.category-option::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.category-option:hover::before {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .category-option:hover {
   border-color: var(--accent-gold);
-  background: rgba(255, 215, 0, 0.05);
+  transform: scale(1.02);
 }
 
 .category-option.selected {
   border-color: var(--accent-gold);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+.category-option.selected::before {
+  background: rgba(255, 215, 0, 0.2);
 }
 
 .category-option-icon {
@@ -820,9 +896,12 @@ main {
 }
 
 .category-option-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  white-space: pre-line;
+  text-align: center;
+  line-height: 1.2;
 }
 
 .category-option.selected .category-option-label {
@@ -1345,4 +1424,272 @@ main {
   padding: 1rem 1.25rem;
   color: var(--text-secondary);
   font-size: 0.85rem;
+}
+
+/* ZK Private Betting & Claiming */
+.private-bet-container, .private-claim-container {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.05) 0%, rgba(20, 184, 166, 0.1) 100%);
+  border: 1px solid var(--accent-primary);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.private-bet-container::before, .private-claim-container::before {
+  content: 'ZK-SNARK';
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+  opacity: 0.5;
+  letter-spacing: 2px;
+}
+
+.private-bet-container h3, .private-claim-container h3 {
+  color: var(--accent-primary);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.private-bet-container h3::before {
+  content: '🛡️';
+}
+
+.private-claim-container h3::before {
+  content: '🗝️';
+}
+
+.description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.bet-input {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.btn-generate {
+  width: 100%;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #0f766e 100%);
+  color: white;
+  font-weight: 700;
+  border: 1px solid var(--accent-primary);
+}
+
+.btn-generate:hover {
+  box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
+  transform: scale(1.02);
+}
+
+.upload-zone {
+  border: 2px dashed var(--accent-primary);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: rgba(20, 184, 166, 0.05);
+}
+
+.upload-zone:hover {
+  background: rgba(20, 184, 166, 0.1);
+  border-color: var(--accent-gold);
+}
+
+.upload-zone.has-file {
+  border-style: solid;
+  background: rgba(74, 222, 128, 0.1);
+  border-color: var(--accent-yes);
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.ticket-details {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.detail-item .label {
+  color: var(--text-secondary);
+}
+
+.detail-item .value {
+  color: var(--accent-gold);
+  font-family: monospace;
+}
+
+.btn-claim-private {
+  width: 100%;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
+  color: #1a1a1a;
+  font-weight: 800;
+}
+
+.status-message {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.status-message.info {
+  background: rgba(20, 184, 166, 0.1);
+  color: var(--accent-primary);
+}
+
+.status-message.error {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--accent-no);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* Bets List */
+.bets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.bet-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bet-details {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.bet-choice {
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.bet-choice.yes { background: #4caf50; color: white; }
+.bet-choice.no { background: #f44336; color: white; }
+
+.bet-amount {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+}
+
+.bet-date {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.btn-generate-small {
+  background: var(--primary-color, #14b8a6);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.btn-generate-small:hover {
+  transform: scale(1.05);
+  filter: brightness(1.2);
+}
+
+.no-bets {
+  text-align: center;
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* Icon Fixes */
+.market-status-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid var(--border-gold);
+  flex-shrink: 0;
+}
+
+.category-badge-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  margin-right: 0.25rem;
+  vertical-align: middle;
+}
+
+.odds-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.5rem;
+  border: 2px solid currentColor;
+}
+
+.form-header-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid var(--accent-gold);
+}
+
+.success-icon, .loading-icon, .empty-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  display: block;
 }

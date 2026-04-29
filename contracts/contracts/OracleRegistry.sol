@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 contract OracleRegistry {
 
     // ============ Constants ============
-    uint256 public constant MIN_STAKE = 100 ether;        // 100 ROSE minimum
+    uint256 public constant MIN_STAKE = 5 ether;          // 5 ROSE minimum
     uint256 public constant SLASH_PERCENT = 50;           // 50% slash for wrong vote
     uint256 public constant MIN_ORACLES_FOR_RESOLUTION = 3;
 

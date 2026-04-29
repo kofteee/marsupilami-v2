@@ -220,7 +220,10 @@ async function main() {
       const elapsedS  = Math.floor((Date.now() - startTs) / 1000);
 
       try {
-        const tx = await (market.connect(wallet) as any).placeBet(choice, { value: betWei });
+        // Generate a random commitment for the simulation
+        // In a real app, this would be Poseidon(nullifier, secret)
+        const commitment = ethers.randomBytes(32);
+        const tx = await (market.connect(wallet) as any).placeBetPrivate(commitment, choice, { value: betWei });
         await tx.wait();
 
         if (choice === 0) {
@@ -299,39 +302,8 @@ async function main() {
   console.log(`      Market resolved: ${outcomeNames[Number(finalOutcome)]}`);
   console.log(`      Market state: ${finalState === 2n ? "RESOLVED" : "ERROR"}`);
 
-  // ─── Phase 7: Process Claims ─────────────────────────────────────────────
-  console.log(`\n[7/7] Processing claims for winners...`);
-
-  const winners = outcome === OUTCOME_YES ? yesBettors : noBettors;
-  const losers = outcome === OUTCOME_YES ? noBettors : yesBettors;
-
-  console.log(`      Winners (${outcomeLabel} bettors): ${winners.length}`);
-  console.log(`      Losers: ${losers.length}`);
-
-  let totalClaimed = 0n;
-  let claimCount = 0;
-  let claimErrors = 0;
-
-  // Process claims for winners
-  for (const wallet of winners) {
-    try {
-      const balBefore = await ethers.provider.getBalance(wallet.address);
-      const claimTx = await market.connect(wallet).claim();
-      const receipt = await claimTx.wait();
-      const gasUsed = receipt!.gasUsed * receipt!.gasPrice;
-      const balAfter = await ethers.provider.getBalance(wallet.address);
-
-      const claimed = balAfter - balBefore + gasUsed;
-      totalClaimed += claimed;
-      claimCount++;
-    } catch (err: any) {
-      claimErrors++;
-    }
-  }
-
-  console.log(`      Claims processed: ${claimCount}`);
-  console.log(`      Claim errors: ${claimErrors}`);
-  console.log(`      Total paid out: ${ethers.formatEther(totalClaimed)} ETH`);
+  console.log(`      Claims must be processed via the ZK Air-Gapped Claim page.`);
+  console.log(`      Traditional direct claiming is disabled for privacy.`);
 
   // ─── Final Summary ───────────────────────────────────────────────────────
   console.log("\n" + "=".repeat(56));

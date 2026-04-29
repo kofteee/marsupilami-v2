@@ -3,6 +3,19 @@ pragma solidity ^0.8.24;
 
 import "./OracleRegistry.sol";
 
+interface IVerifier {
+    function verifyProof(
+        uint[2] calldata a,
+        uint[2][2] calldata b,
+        uint[2] calldata c,
+        uint[4] calldata input
+    ) external view returns (bool);
+}
+
+interface IPoseidon {
+    function poseidon(uint256[2] memory inputs) external pure returns (uint256);
+}
+
 contract PredictionMarket {
 
     // ============ Enums ============
@@ -11,11 +24,7 @@ contract PredictionMarket {
     enum MarketState { OPEN, CLOSED, RESOLVED, CANCELLED }
 
     // ============ Structs ============
-    struct Position {
-        uint256 yesAmount;
-        uint256 noAmount;
-        bool hasClaimed;
-    }
+    // No public positions mapping - everything is ZK
 
     struct OracleVote {
         Outcome vote;
@@ -48,8 +57,7 @@ contract PredictionMarket {
     uint256 private noPool;
     uint256 private pendingYesPool;  // Accumulates between updates
     uint256 private pendingNoPool;
-    mapping(address => Position) private positions;
-    address[] private bettors;
+    // bettors array removed - not needed for ZK
 
     // Oracle resolution
     mapping(address => OracleVote) public oracleVotes;
@@ -62,12 +70,26 @@ contract PredictionMarket {
     address[] public marketOracles;
     mapping(address => bool) public isMarketOracle;
 
+    // ============ ZK / Privacy State ============
+    IVerifier public verifier;
+    IPoseidon public poseidon;
+
+    mapping(bytes32 => bool) public isSpent;
+    
+    // Incremental Merkle Tree
+    uint256 public constant TREE_LEVELS = 20;
+    bytes32[TREE_LEVELS] public filledSubtrees;
+    bytes32[TREE_LEVELS] public zeros;
+    uint256 public nextLeafIndex;
+    mapping(bytes32 => bool) public roots;
+
     // ============ Events ============
-    event BetPlaced(address indexed user, uint256 amount);  // Note: choice NOT emitted
+    event PrivateBetPlaced(uint256 indexed leafIndex, bytes32 indexed commitment, uint256 amount);
     event OddsUpdated(uint256 yesPool, uint256 noPool, uint256 timestamp);
     event MarketClosed(uint256 timestamp);
     event MarketResolved(Outcome outcome);
     event RewardClaimed(address indexed user, uint256 amount);
+    event PrivateClaimed(bytes32 indexed nullifierHash, address indexed recipient, uint256 amount);
     event OracleVoted(address indexed oracle, uint256 timestamp);  // vote NOT emitted
 
     // ============ Modifiers ============
@@ -92,7 +114,9 @@ contract PredictionMarket {
         address _oracleRegistry,
         string memory _question,
         uint256 _bettingDuration,
-        address[] memory _oracles
+        address[] memory _oracles,
+        address _verifier,
+        address _poseidon
     ) {
         require(_oracles.length == 3, "Must have exactly 3 oracles");
 
@@ -104,6 +128,9 @@ contract PredictionMarket {
         state = MarketState.OPEN;
         lastOddsUpdate = block.timestamp;
 
+        verifier = IVerifier(_verifier);
+        poseidon = IPoseidon(_poseidon);
+
         // Store market-specific oracles
         for (uint i = 0; i < 3; i++) {
             require(oracleRegistry.isOracle(_oracles[i]), "Oracle not registered");
@@ -111,40 +138,11 @@ contract PredictionMarket {
             marketOracles.push(_oracles[i]);
             isMarketOracle[_oracles[i]] = true;
         }
+
+        _initMerkleTree();
     }
 
     // ============ Core Betting Functions ============
-
-    /// @notice Place a private bet
-    /// @param choice The bet choice (YES=0, NO=1) - this parameter is encrypted by Sapphire
-    function placeBet(Choice choice) external payable onlyOpen {
-        require(msg.value >= MIN_BET, "Bet too small");
-
-        // Update user's position (PRIVATE)
-        Position storage pos = positions[msg.sender];
-        if (pos.yesAmount == 0 && pos.noAmount == 0) {
-            bettors.push(msg.sender);
-        }
-
-        // Add to pending pools (will be revealed at next interval)
-        if (choice == Choice.YES) {
-            pos.yesAmount += msg.value;
-            pendingYesPool += msg.value;
-            yesPool += msg.value;
-        } else {
-            pos.noAmount += msg.value;
-            pendingNoPool += msg.value;
-            noPool += msg.value;
-        }
-
-        totalDeposits += msg.value;
-
-        // Check if we should update public odds
-        _maybeUpdateOdds();
-
-        // Emit event WITHOUT the choice
-        emit BetPlaced(msg.sender, msg.value);
-    }
 
     /// @notice Update public odds if interval has passed
     function _maybeUpdateOdds() internal {
@@ -267,36 +265,137 @@ contract PredictionMarket {
 
     // ============ Claiming ============
 
-    /// @notice Claim winnings after resolution
-    function claim() external onlyResolved {
-        Position storage pos = positions[msg.sender];
-        require(!pos.hasClaimed, "Already claimed");
-        require(pos.yesAmount > 0 || pos.noAmount > 0, "No position");
+    // ============ Private (ZK) Functions ============
 
-        uint256 payout = 0;
+    /// @notice Place a private bet using a ZK commitment
+    function placeBetPrivate(bytes32 commitment, Choice choice) external payable onlyOpen {
+        require(msg.value >= MIN_BET, "Bet too small");
+        require(nextLeafIndex < 2**TREE_LEVELS, "Tree full");
 
-        if (outcome == Outcome.INVALID) {
-            // Refund all bets
-            payout = pos.yesAmount + pos.noAmount;
-        } else if (outcome == Outcome.YES) {
-            // Pari-mutuel: winner gets proportional share of total pool
-            // payout = userYesBet * (totalPool / yesPool)
-            if (pos.yesAmount > 0) {
-                uint256 totalPool = yesPool + noPool;
-                payout = (pos.yesAmount * totalPool) / yesPool;
-            }
-        } else if (outcome == Outcome.NO) {
-            if (pos.noAmount > 0) {
-                uint256 totalPool = yesPool + noPool;
-                payout = (pos.noAmount * totalPool) / noPool;
-            }
+        uint256 leafIndex = nextLeafIndex;
+        _insert(commitment);
+
+        if (choice == Choice.YES) {
+            yesPool += msg.value;
+            pendingYesPool += msg.value;
+        } else {
+            noPool += msg.value;
+            pendingNoPool += msg.value;
         }
+        totalDeposits += msg.value;
 
-        pos.hasClaimed = true;
+        _maybeUpdateOdds();
 
-        if (payout > 0) {
-            payable(msg.sender).transfer(payout);
-            emit RewardClaimed(msg.sender, payout);
+        emit PrivateBetPlaced(leafIndex, commitment, msg.value);
+    }
+
+    /// @notice Claim winnings using a ZK proof
+    function claimWinningsPrivate(
+        uint[2] calldata a,
+        uint[2][2] calldata b,
+        uint[2] calldata c,
+        uint[4] calldata input
+    ) external onlyResolved {
+        // input[0] = merkleRoot
+        // input[1] = nullifierHash
+        // input[2] = choice
+        // input[3] = amount
+
+        bytes32 merkleRoot = bytes32(input[0]);
+        bytes32 nullifierHash = bytes32(input[1]);
+        Choice choice = Choice(input[2]);
+        uint256 amount = input[3];
+
+        require(roots[merkleRoot], "Invalid Merkle root");
+        require(!isSpent[nullifierHash], "Already spent");
+        require(verifier.verifyProof(a, b, c, input), "Invalid ZK proof");
+
+        isSpent[nullifierHash] = true;
+
+        uint256 payout = _calculatePayout(choice, amount);
+        require(payout > 0, "No winnings");
+
+        payable(msg.sender).transfer(payout);
+        emit PrivateClaimed(nullifierHash, msg.sender, payout);
+    }
+
+    function _calculatePayout(Choice _choice, uint256 _amount) internal view returns (uint256) {
+        if (outcome == Outcome.INVALID) {
+            return _amount;
+        } else if (Outcome(uint8(_choice) + 1) == outcome) {
+            uint256 totalPool = yesPool + noPool;
+            uint256 winnerPool = (outcome == Outcome.YES) ? yesPool : noPool;
+            if (winnerPool == 0) return _amount; // Safety check
+            return (_amount * totalPool) / winnerPool;
+        }
+        return 0;
+    }
+
+    mapping(uint256 => bytes32) public leaves;
+    mapping(uint256 => mapping(uint256 => bytes32)) public tree; // level => index => hash
+
+    // ============ Merkle Tree Internal ============
+
+    function _initMerkleTree() internal {
+        // Level 0 zero is 0 for our circuits
+        bytes32 currentZero = bytes32(0); 
+        for (uint256 i = 0; i < TREE_LEVELS; i++) {
+            zeros[i] = currentZero;
+            filledSubtrees[i] = currentZero;
+            
+            uint256[2] memory inputs;
+            inputs[0] = uint256(currentZero);
+            inputs[1] = uint256(currentZero);
+            currentZero = bytes32(poseidon.poseidon(inputs));
+        }
+        roots[currentZero] = true;
+    }
+
+    function _insert(bytes32 leaf) internal {
+        uint256 currentIndex = nextLeafIndex;
+        leaves[currentIndex] = leaf;
+        tree[0][currentIndex] = leaf;
+        nextLeafIndex++;
+        
+        bytes32 currentLevelHash = leaf;
+        bytes32 left;
+        bytes32 right;
+
+        for (uint256 i = 0; i < TREE_LEVELS; i++) {
+            if (currentIndex % 2 == 0) {
+                left = currentLevelHash;
+                right = zeros[i];
+                filledSubtrees[i] = currentLevelHash;
+            } else {
+                left = filledSubtrees[i];
+                right = currentLevelHash;
+            }
+            
+            uint256[2] memory inputs;
+            inputs[0] = uint256(left);
+            inputs[1] = uint256(right);
+            currentLevelHash = bytes32(poseidon.poseidon(inputs));
+            currentIndex /= 2;
+            tree[i + 1][currentIndex] = currentLevelHash;
+        }
+        roots[currentLevelHash] = true;
+    }
+
+    /// @notice Get the Merkle proof for a given leaf index
+    function getMerklePath(uint256 leafIndex) external view returns (bytes32[TREE_LEVELS] memory pathElements, uint256[TREE_LEVELS] memory pathIndices) {
+        require(leafIndex < nextLeafIndex, "Invalid leaf index");
+        
+        uint256 currentIndex = leafIndex;
+        for (uint256 i = 0; i < TREE_LEVELS; i++) {
+            pathIndices[i] = currentIndex % 2;
+            uint256 siblingIndex = (currentIndex % 2 == 0) ? currentIndex + 1 : currentIndex - 1;
+            
+            bytes32 siblingHash = tree[i][siblingIndex];
+            if (siblingHash == bytes32(0)) {
+                siblingHash = zeros[i];
+            }
+            pathElements[i] = siblingHash;
+            currentIndex /= 2;
         }
     }
 
@@ -310,17 +409,6 @@ contract PredictionMarket {
         }
         yesBps = (publicYesPool * 10000) / total;
         noBps = 10000 - yesBps;
-    }
-
-    /// @notice Get user's position (only callable by the user themselves)
-    /// This is a PRIVATE view - Sapphire will only return data to the caller
-    function getMyPosition() external view returns (
-        uint256 yesAmount,
-        uint256 noAmount,
-        bool hasClaimed
-    ) {
-        Position storage pos = positions[msg.sender];
-        return (pos.yesAmount, pos.noAmount, pos.hasClaimed);
     }
 
     /// @notice Get market info

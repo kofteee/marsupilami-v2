@@ -1,21 +1,40 @@
 import { ethers } from "hardhat";
 import * as fs from "fs";
+import * as path from "path";
 
 async function main() {
   // Load deployed addresses
-  if (!fs.existsSync("deployed-addresses.json")) {
+  const addressesPath = path.join(__dirname, "../deployed-addresses.json");
+  if (!fs.existsSync(addressesPath)) {
     console.error("No deployed-addresses.json found. Run deploy.ts first.");
     process.exit(1);
   }
 
-  const addresses = JSON.parse(fs.readFileSync("deployed-addresses.json", "utf8"));
+  const addresses = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
   console.log("Using MarketFactory at:", addresses.marketFactory);
+  console.log("Using OracleRegistry at:", addresses.oracleRegistry);
 
   const [signer] = await ethers.getSigners();
   console.log("Creating market with account:", signer.address);
 
-  // Get MarketFactory contract
+  // Get contracts
   const factory = await ethers.getContractAt("MarketFactory", addresses.marketFactory, signer);
+  const registry = await ethers.getContractAt("OracleRegistry", addresses.oracleRegistry, signer);
+
+  // Get oracles to use
+  const oracleCount = await registry.getOracleCount();
+  if (oracleCount < 3) {
+    console.error(`Not enough oracles registered. Need 3, found ${oracleCount}.`);
+    console.log("Please run registerOracles.ts first.");
+    process.exit(1);
+  }
+
+  const oracles: string[] = [];
+  for (let i = 0; i < 3; i++) {
+    oracles.push(await registry.oracleList(i));
+  }
+
+  console.log("Using oracles:", oracles);
 
   // Market parameters
   const question = process.env.QUESTION || "Will ETH be above $5000 by end of 2026?";
@@ -27,7 +46,7 @@ async function main() {
   console.log("  Duration:", durationDays, "days");
 
   // Create the market
-  const tx = await factory.createMarket(question, durationSeconds);
+  const tx = await factory.createMarket(question, durationSeconds, oracles);
   console.log("\nTransaction hash:", tx.hash);
 
   const receipt = await tx.wait();
@@ -52,7 +71,7 @@ async function main() {
     console.log("========================================");
     console.log("Market address:", parsed?.args.market);
     console.log("Creator:", parsed?.args.creator);
-    console.log("Betting deadline:", new Date(Number(parsed?.args.bettingDeadline) * 1000).toISOString());
+    console.log("Betting deadline:", new Date(Number(parsed?.args.bettingDeadline) * 1000).toLocaleString());
     console.log("========================================");
   }
 

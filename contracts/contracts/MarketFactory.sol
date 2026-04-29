@@ -7,6 +7,8 @@ import "./OracleRegistry.sol";
 contract MarketFactory {
 
     OracleRegistry public immutable oracleRegistry;
+    address public immutable verifier;
+    address public immutable poseidon;
     address[] public allMarkets;
 
     event MarketCreated(
@@ -16,8 +18,10 @@ contract MarketFactory {
         uint256 bettingDeadline
     );
 
-    constructor(address _oracleRegistry) {
+    constructor(address _oracleRegistry, address _verifier, address _poseidon) {
         oracleRegistry = OracleRegistry(_oracleRegistry);
+        verifier = _verifier;
+        poseidon = _poseidon;
     }
 
     /// @notice Create a new prediction market
@@ -39,7 +43,9 @@ contract MarketFactory {
             address(oracleRegistry),
             question,
             bettingDuration,
-            oracles
+            oracles,
+            verifier,
+            poseidon
         );
 
         allMarkets.push(address(market));
