@@ -97,6 +97,9 @@ export function Market({ address, categoryFilter = "all" }: MarketProps) {
       <div className="market-footer">
         <code>{address}</code>
       </div>
+      <div className="market-footer">
+        <code>{address}</code>
+      </div>
     </div>
   );
 }

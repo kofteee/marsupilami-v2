@@ -40,6 +40,7 @@ contract PredictionMarket {
     OracleRegistry public immutable oracleRegistry;
     address public immutable creator;
     string public question;
+    string public category;
     uint256 public immutable bettingDeadline;
     uint256 public immutable resolutionDeadline;
 
@@ -113,26 +114,35 @@ contract PredictionMarket {
     constructor(
         address _oracleRegistry,
         string memory _question,
+        string memory _category,
         uint256 _bettingDuration,
         address[] memory _oracles,
         address _verifier,
         address _poseidon
-    ) {
-        require(_oracles.length == 3, "Must have exactly 3 oracles");
-
+    ) payable {
         oracleRegistry = OracleRegistry(_oracleRegistry);
         creator = msg.sender;
         question = _question;
+        category = _category;
         bettingDeadline = block.timestamp + _bettingDuration;
         resolutionDeadline = bettingDeadline + RESOLUTION_WINDOW;
         state = MarketState.OPEN;
         lastOddsUpdate = block.timestamp;
-
         verifier = IVerifier(_verifier);
         poseidon = IPoseidon(_poseidon);
 
-        // Store market-specific oracles
-        for (uint i = 0; i < 3; i++) {
+        // Seed liquidity to prevent 100% odds for first bettor
+        if (msg.value > 0) {
+            uint256 half = msg.value / 2;
+            yesPool = half;
+            noPool = msg.value - half;
+            publicYesPool = yesPool;
+            publicNoPool = noPool;
+            totalDeposits = msg.value;
+        }
+
+        // Set oracles
+        for (uint256 i = 0; i < _oracles.length; i++) {
             require(oracleRegistry.isOracle(_oracles[i]), "Oracle not registered");
             require(!isMarketOracle[_oracles[i]], "Duplicate oracle");
             marketOracles.push(_oracles[i]);
@@ -414,6 +424,7 @@ contract PredictionMarket {
     /// @notice Get market info
     function getMarketInfo() external view returns (
         string memory _question,
+        string memory _category,
         uint256 _bettingDeadline,
         uint256 _resolutionDeadline,
         MarketState _state,
@@ -424,6 +435,7 @@ contract PredictionMarket {
     ) {
         return (
             question,
+            category,
             bettingDeadline,
             resolutionDeadline,
             state,
