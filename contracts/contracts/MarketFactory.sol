@@ -29,7 +29,7 @@ contract MarketFactory {
         string calldata category,
         uint256 bettingDuration,
         address[] calldata oracles
-    ) external returns (address) {
+    ) external payable returns (address) {
         // Reduced requirements for testing and flexibility
         require(bettingDuration >= 1 minutes, "Duration too short");
         require(bettingDuration <= 365 days, "Duration too long");

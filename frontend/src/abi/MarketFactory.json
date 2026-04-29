@@ -5,6 +5,16 @@
         "internalType": "address",
         "name": "_oracleRegistry",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_verifier",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_poseidon",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -16,7 +26,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "market",
+        "name": "marketAddress",
         "type": "address"
       },
       {
@@ -29,6 +39,12 @@
         "indexed": false,
         "internalType": "string",
         "name": "question",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "category",
         "type": "string"
       },
       {
@@ -68,6 +84,11 @@
         "type": "string"
       },
       {
+        "internalType": "string",
+        "name": "category",
+        "type": "string"
+      },
+      {
         "internalType": "uint256",
         "name": "bettingDuration",
         "type": "uint256"
@@ -86,7 +107,7 @@
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -132,6 +153,32 @@
     "outputs": [
       {
         "internalType": "contract OracleRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "poseidon",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "verifier",
+    "outputs": [
+      {
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
