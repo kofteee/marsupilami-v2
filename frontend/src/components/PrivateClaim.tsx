@@ -34,7 +34,7 @@ export const PrivateClaim: React.FC = () => {
         setStatus("Submitting claim transaction...");
         try {
             const signer = await getSigner();
-            const market = new ethers.Contract(ticket.marketAddress, PredictionMarketABI.abi, signer);
+            const market = new ethers.Contract(ticket.marketAddress, PredictionMarketABI, signer);
             
             // Execute the claim directly paying own gas
             const tx = await market.claimWinningsPrivate(

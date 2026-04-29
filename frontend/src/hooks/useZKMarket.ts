@@ -13,7 +13,7 @@ export function usePlaceBetPrivate(marketAddress: string) {
             const commitment = await calculateCommitment(secret, nullifier, choice, ethers.parseEther(amount));
             const commitmentHex = ethers.toBeHex(commitment, 32);
 
-            const market = new ethers.Contract(marketAddress, PredictionMarketABI.abi, signer);
+            const market = new ethers.Contract(marketAddress, PredictionMarketABI, signer);
             const tx = await market.placeBetPrivate(commitmentHex, choice, {
                 value: ethers.parseEther(amount)
             });
@@ -73,7 +73,7 @@ export function useGenerateClaimTicket(marketAddress: string) {
             const nullifier = bet.nullifier;
             const amount = ethers.parseEther(bet.amount);
             
-            const market = new ethers.Contract(marketAddress, PredictionMarketABI.abi, signer);
+            const market = new ethers.Contract(marketAddress, PredictionMarketABI, signer);
             
             // 2. Fetch Merkle Path from Contract
             

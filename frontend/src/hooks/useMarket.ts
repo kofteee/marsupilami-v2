@@ -62,7 +62,7 @@ export function useLiveFeed(marketAddress: string | undefined) {
     queryFn: async (): Promise<LiveBet[]> => {
       if (!marketAddress) return [];
       const provider = await getProvider();
-      const contract = new ethers.Contract(marketAddress, PredictionMarketABI.abi, provider);
+      const contract = new ethers.Contract(marketAddress, PredictionMarketABI, provider);
       const currentBlock = await provider.getBlockNumber();
       const fromBlock = Math.max(0, currentBlock - 2000);
       const events = await contract.queryFilter(contract.filters.BetPlaced(), fromBlock);
@@ -150,7 +150,7 @@ export function useMarketInfo(marketAddress: string) {
       const getInfoFromProvider = async (provider: any) => {
         const network = await provider.getNetwork();
         const contracts = getContracts(network.chainId);
-        const market = new ethers.Contract(marketAddress, PredictionMarketABI.abi, provider);
+        const market = new ethers.Contract(marketAddress, PredictionMarketABI, provider);
         const info = await market.getMarketInfo();
         const odds = await market.getOdds();
         return {
