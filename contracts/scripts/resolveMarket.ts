@@ -10,21 +10,16 @@ async function main() {
     }
     const addresses = JSON.parse(fs.readFileSync(addressesPath, "utf8"));
     const factory = await ethers.getContractAt("MarketFactory", addresses.marketFactory);
-    
-    const args = process.argv.slice(2);
-    let marketAddress = args[0];
 
-    if (!marketAddress) {
-        const count = await factory.getMarketCount();
-        if (count === 0n) {
-            console.error("No markets found.");
-            return;
-        }
-        marketAddress = await factory.allMarkets(count - 1n);
+    const count = await factory.getMarketCount();
+    if (count === 0n) {
+        console.error("No markets found.");
+        return;
     }
-    
+
+    const marketAddress = await factory.allMarkets(count - 1n);
     const market = await ethers.getContractAt("PredictionMarket", marketAddress);
-    
+
     console.log("Resolving market:", marketAddress);
 
     // 1. Check if we need to close it
@@ -34,7 +29,7 @@ async function main() {
         const deadline = await market.bettingDeadline();
         await ethers.provider.send("evm_setNextBlockTimestamp", [Number(deadline) + 1]);
         await ethers.provider.send("evm_mine", []);
-        
+
         console.log("Closing market...");
         await (await market.closeMarket()).wait();
     }
@@ -45,11 +40,11 @@ async function main() {
 
     // We need to use the oracle accounts to vote
     const signers = await ethers.getSigners();
-    
+
     for (let i = 0; i < 2; i++) {
         const oracleAddress = oracles[i];
         const oracleSigner = signers.find(s => s.address.toLowerCase() === oracleAddress.toLowerCase());
-        
+
         if (oracleSigner) {
             console.log(`Oracle ${oracleAddress} voting YES...`);
             await (await market.connect(oracleSigner).submitResolution(1)).wait(); // 1 = YES

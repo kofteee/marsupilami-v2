@@ -259,7 +259,7 @@ export function useCreateMarket() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ question, bettingDuration, oracles }: { question: string; bettingDuration: number; oracles: string[] }) => {
+    mutationFn: async ({ question, category, bettingDuration, oracles }: { question: string; category: string; bettingDuration: number; oracles: string[] }) => {
       const signer = await getSigner();
       const network = await signer.provider!.getNetwork();
       const contracts = getContracts(network.chainId);
@@ -270,7 +270,7 @@ export function useCreateMarket() {
         signer
       );
 
-      const tx = await factory.createMarket(question, bettingDuration, oracles, {
+      const tx = await factory.createMarket(question, category, bettingDuration, oracles, {
         value: ethers.parseEther("1.0") // Seed liquidity
       });
       return tx.wait();

@@ -53,7 +53,7 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
     const bettingDuration = isTestMode ? 60 : durationDays * 24 * 60 * 60;
 
     createMarket.mutate(
-      { question: question.trim(), bettingDuration, oracles: selectedOracles },
+      { question: question.trim(), category, bettingDuration, oracles: selectedOracles },
       {
         onSuccess: () => {
           setQuestion("");
