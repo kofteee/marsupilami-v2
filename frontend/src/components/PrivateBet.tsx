@@ -3,7 +3,6 @@ import { usePlaceBetPrivate, useGenerateClaimTicket } from '../hooks/useZKMarket
 import { useMarketInfo } from '../hooks/useMarket';
 import yesButton from "../assets/marsu/yes-button.jpeg";
 import noButton from "../assets/marsu/no-button.jpeg";
-import claimRewards from "../assets/marsu/claim-rewards.jpeg";
 
 interface PrivateBetProps {
     address: string;

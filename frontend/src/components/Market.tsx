@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useMarketInfo } from "../hooks/useMarket";
 import { PrivateBet } from "./PrivateBet";
 import { parseCategory, CATEGORIES } from "../App";

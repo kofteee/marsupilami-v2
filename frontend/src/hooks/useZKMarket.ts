@@ -76,8 +76,6 @@ export function useGenerateClaimTicket(marketAddress: string) {
             const market = new ethers.Contract(marketAddress, PredictionMarketABI.abi, signer);
             
             // 2. Fetch Merkle Path from Contract
-            const commitment = await calculateCommitment(secret, nullifier, bet.choice, amount);
-            const calculatedCommitmentHex = ethers.toBeHex(commitment, 32);
             
             // We need the leafIndex.
             // or by finding it in the contract's leaves mapping (expensive)
