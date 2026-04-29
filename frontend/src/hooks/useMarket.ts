@@ -86,14 +86,12 @@ export function useLiveFeed(marketAddress: string | undefined) {
 export interface MarketInfo {
   address: string;
   question: string;
-  category: string;
   bettingDeadline: number;
   resolutionDeadline: number;
   state: number;
   outcome: number;
   yesPool: string;
   noPool: string;
-  totalPool: string;
   totalDeposits: string;
   yesOdds: number;
   noOdds: number;
@@ -111,7 +109,7 @@ export function useMarkets() {
         try {
           const network = await provider.getNetwork();
           const contracts = getContracts(network.chainId);
-          
+
           if (!contracts.marketFactory) {
             console.warn(`[useMarkets] No marketFactory address found for chain ${network.chainId}`);
             return [];
@@ -162,10 +160,8 @@ export function useMarketInfo(marketAddress: string) {
           resolutionDeadline: Number(info._resolutionDeadline),
           state: Number(info._state),
           outcome: Number(info._outcome),
-          category: info._category || "other",
           yesPool: ethers.formatEther(info._publicYesPool),
           noPool: ethers.formatEther(info._publicNoPool),
-          totalPool: ethers.formatEther(BigInt(info._publicYesPool) + BigInt(info._publicNoPool)),
           totalDeposits: ethers.formatEther(info._totalDeposits),
           yesOdds: Number(odds.yesBps) / 100,
           noOdds: Number(odds.noBps) / 100,
@@ -206,7 +202,7 @@ export function useRegisteredOracles() {
         try {
           const network = await provider.getNetwork();
           const contracts = getContracts(network.chainId);
-          
+
           if (!contracts.oracleRegistry) {
             console.warn(`[useRegisteredOracles] No oracleRegistry address found for chain ${network.chainId}`);
             return [];
@@ -263,7 +259,7 @@ export function useCreateMarket() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ question, durationDays, oracles }: { question: string; durationDays: number; oracles: string[] }) => {
+    mutationFn: async ({ question, bettingDuration, oracles }: { question: string; bettingDuration: number; oracles: string[] }) => {
       const signer = await getSigner();
       const network = await signer.provider!.getNetwork();
       const contracts = getContracts(network.chainId);
@@ -274,8 +270,9 @@ export function useCreateMarket() {
         signer
       );
 
-      const durationSeconds = durationDays * 24 * 60 * 60;
-      const tx = await factory.createMarket(question, durationSeconds, oracles);
+      const tx = await factory.createMarket(question, bettingDuration, oracles, {
+        value: ethers.parseEther("1.0") // Seed liquidity
+      });
       return tx.wait();
     },
     onSuccess: () => {

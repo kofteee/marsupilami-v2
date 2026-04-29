@@ -1876,3 +1876,238 @@ main {
   font-weight: 700;
   font-size: 0.75rem;
 }
+
+/* V1 Style Betting Area */
+.betting-area {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.odds-display {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.odds-side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.odds-side.yes { border-bottom: 4px solid var(--accent-yes); }
+.odds-side.no { border-bottom: 4px solid var(--accent-no); }
+
+.odds-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.odds-value {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.odds-side.yes .odds-value { color: var(--accent-yes); }
+.odds-side.no .odds-value { color: var(--accent-no); }
+
+.odds-pool {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.btn-copy-address {
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.btn-copy-address:hover {
+  background: var(--accent-gold);
+  color: #000;
+}
+
+.countdown-timer {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: var(--accent-gold);
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.private-bet-wrapper {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+/* V1 CREATE MARKET STYLES */
+.v1-title {
+  color: var(--accent-gold);
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+.v1-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  letter-spacing: 1px;
+}
+
+.v1-category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.v1-cat-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.v1-cat-btn img { width: 40px; height: 40px; }
+.v1-cat-btn span { font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); }
+.v1-cat-btn.selected {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: var(--accent-gold);
+}
+.v1-cat-btn.selected span { color: var(--accent-gold); }
+
+.v1-duration-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.v1-dur-btn {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  color: white;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.v1-dur-btn.selected {
+  background: var(--accent-gold);
+  color: black;
+  border-color: var(--accent-gold);
+}
+
+.v1-input {
+  width: 100%;
+  background: rgba(0,0,0,0.5);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  color: white;
+  font-family: inherit;
+}
+
+.v1-input:focus { border-color: var(--accent-gold); outline: none; }
+
+.v1-oracle-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.v1-oracle-item {
+  background: rgba(255,255,255,0.05);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.v1-oracle-item.selected {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  background: rgba(255,215,0,0.1);
+}
+
+.v1-submit-btn {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 15px;
+  background: var(--accent-gold);
+  color: black;
+  border: none;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+}
+
+.v1-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Test Mode Duration Styles */
+.duration-control-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-test-duration {
+  flex: 1;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-test-duration.active {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.disabled-fade {
+  opacity: 0.3;
+  pointer-events: none;
+}

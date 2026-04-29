@@ -16,6 +16,7 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
   const [question, setQuestion] = useState("");
   const [category, setCategory] = useState<CategoryId>("other");
   const [durationDays, setDurationDays] = useState(7);
+  const [isTestMode, setIsTestMode] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedOracles, setSelectedOracles] = useState<string[]>([]);
 
@@ -48,11 +49,11 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
     if (!question.trim()) return;
     if (selectedOracles.length !== 3) return;
 
-    // Prepend category tag to question
-    const fullQuestion = `[${category}] ${question.trim()}`;
+    // Calculate actual duration in seconds
+    const bettingDuration = isTestMode ? 60 : durationDays * 24 * 60 * 60;
 
     createMarket.mutate(
-      { question: fullQuestion, durationDays, oracles: selectedOracles },
+      { question: question.trim(), bettingDuration, oracles: selectedOracles },
       {
         onSuccess: () => {
           setQuestion("");
@@ -124,14 +125,27 @@ export function CreateMarket({ onSuccess }: CreateMarketProps) {
 
           <div className="form-group">
             <label>Betting Duration (Days)</label>
-            <input
-              type="number"
-              min={1}
-              max={30}
-              value={durationDays}
-              onChange={(e) => setDurationDays(parseInt(e.target.value) || 1)}
-              className="duration-input"
-            />
+            <div className="duration-control-row">
+              <input
+                type="number"
+                min={1}
+                max={30}
+                value={durationDays}
+                onChange={(e) => {
+                  setDurationDays(parseInt(e.target.value) || 1);
+                  setIsTestMode(false);
+                }}
+                className={`duration-input ${isTestMode ? 'disabled-fade' : ''}`}
+                disabled={isTestMode}
+              />
+              <button 
+                type="button" 
+                className={`btn-test-duration ${isTestMode ? 'active' : ''}`}
+                onClick={() => setIsTestMode(!isTestMode)}
+              >
+                1 Minute 
+              </button>
+            </div>
           </div>
 
           <div className="form-group">
